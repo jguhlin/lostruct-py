@@ -1,7 +1,7 @@
 from itertools import islice
 import numpy as np
 #import operator as op
-import pandas as pd
+#import pandas as pd
 from math import sqrt
 #import scipy.linalg
 #from sklearn.preprocessing import normalize
@@ -9,6 +9,7 @@ from math import sqrt
 #from skbio.stats.ordination import pcoa
 from numba import jit
 from cyvcf2 import VCF
+import sparse
 
 # Need to cite:
 # https://github.com/brentp/cyvcf2
@@ -44,17 +45,40 @@ def get_gts(x):
     return gts
 
 def parse_vcf(vcf_file, landmark, window_size):
-    snp_generator = partition_all(window_size, get_snps(vcf_file, landmark))
     windows = list()
     positions = list()
-    for window in snp_generator:
-        # Should mask it instead of missing it...
-        if (len(window) < window_size):
-            break
-        gts = [get_gts(i) for i in window]
-        pos = [y.POS for y in window]
-        windows.append(gts)
-        positions.append(pos)
+    
+    window = list()
+    window_positions = list()
+    
+    i = 0
+
+    # Far less elegant, but slightly faster
+    vcf_reader = VCF(vcf_file, gts012=True)(landmark)
+    for record in vcf_reader:
+        if i == window_size:
+            window = np.asarray(window).astype(np.float32)
+            window[window == 3.] = np.nan
+            windows.append(sparse.COO(window))
+            positions.append(window_positions)
+            window = list()
+            window_positions = list()
+            i = 0
+        window.append(record.gt_types)
+        window_positions.append(record.POS)
+        i = i + 1
+        
+#        for window in snp_generator:
+            # Should mask it instead of missing it...
+#            if (len(window) < window_size):
+#                break
+#            gts = sparse.COO(np.asarray([get_gts(i) for i in window]))
+#            pos = [y.POS for y in window]
+#            windows.append(gts)
+#            positions.append(pos)
+
+        
+    print("Final window size of {} ignored.".format(i))
 
     return windows, positions
 
@@ -91,7 +115,7 @@ def cov_pca(snps,w,k):
     return covmat, first_return_arg, eigenvals, np.asarray(eigenvecs, dtype=np.float64)
 
 def eigen_windows(snps, k):
-    return cov_pca(snps, 1, k)
+    return cov_pca(snps.todense(), 1, k)
 
 # TODO: Implement L2 norm (and others?)
 def l1_norm(eigenvals):
