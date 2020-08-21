@@ -81,8 +81,8 @@ def cov_pca(snps,k,w=1):
     
     return covmat, total_variance, vals[0:k], np.asarray(eigenvecs, dtype=np.float64)
 
-def eigen_windows(snps, k):
-    return cov_pca(snps.todense(), k)
+def eigen_windows(snps, k, w):
+    return cov_pca(snps.todense(), k, w)
 
 # TODO: Implement L2 norm (and others?)
 def l1_norm(eigenvals):
