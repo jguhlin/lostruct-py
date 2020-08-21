@@ -1,6 +1,6 @@
 # lostruct-py
 
-This is a reimplementation of lostruct from the original code: (Lostruct)[https://github.com/petrelharp/local_pca]. Please cite the original paper
+This is a reimplementation of lostruct from the original code: [Lostruct](https://github.com/petrelharp/local_pca). Please cite the original paper
 
 ## Citing
 
@@ -11,7 +11,7 @@ Please cite the original lostruct paper:
 ```
 
 ### CyVCF2
-This paper also uses (cyvcf2)[https://github.com/brentp/cyvcf2] for fast VCF processing and should be cited:
+This paper also uses [cyvcf2](https://github.com/brentp/cyvcf2) for fast VCF processing and should be cited:
 
 ```
 Brent S Pedersen, Aaron R Quinlan, cyvcf2: fast, flexible variant analysis with Python, Bioinformatics, Volume 33, Issue 12, 15 June 2017, Pages 1867–1869, https://doi.org/10.1093/bioinformatics/btx057
@@ -31,7 +31,8 @@ CyVCF2 requires zlib-dev, libbz2-dev, libcurl-dev, liblzma-dev, and probably oth
 
 Easiest to install all of these through conda
 
-# Demonstration
+# Demonstration / How to use
+Please see the [Example Notebook](https://nbviewer.jupyter.org/github/jguhlin/lostruct-py/blob/master/Lostruct-py%20Example.ipynb)
 
 ## Data
 ```bcftools annotate chr1-filtered-set-2014Apr15.bcf -x INFO,FORMAT | bcftools view -a -i 'F_MISSING<=0.2' | bcftools view -q 0.05 -q 0.95 -m2 -M2 -a -Oz -o chr1-filtered.vcf.gz```
