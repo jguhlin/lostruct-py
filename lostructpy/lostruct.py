@@ -51,10 +51,7 @@ def parse_vcf(vcf_file, landmark, window_size):
 
 # Input files should be bgzip vcfs with tabix idx, bcf with idx should probably work too
 
-def cov_pca(snps,k,w=None):
-    if w is not None:
-        raise ValueError("Weights are not implemented. Please open a github issue and this will be resolved.")
-
+def cov_pca(snps,k,w=1):
     n = len(snps)
     rowmeans = np.nanmean(snps, axis=1)
     rowmeans = np.reshape(rowmeans, (n, 1))
@@ -63,7 +60,10 @@ def cov_pca(snps,k,w=None):
     #covmat = pd.DataFrame(subtracted).cov()
     covmat = np.ma.cov(np.ma.array(subtracted, mask=np.isnan(subtracted)), rowvar=False)
     #covmat = np.ma.cov(subtracted)
-    #sqrt_w = np.repeat(sqrt(w), covmat.shape[0])
+    if w != 1:
+        sqrt_w = np.repeat(sqrt(w), covmat.shape[0])
+        covmat = np.multiply(covmat, sqrt_w.T)
+        covmat = np.multiply(covmat, sqrt_w)
 
     # This is the first returned argument for cov_pca in R
     total_variance = np.sum(np.power(covmat, 2).flatten())

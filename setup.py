@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="lostruct-py",
-    version="0.0.1",
+    version="0.0.2-notdoneyet",
     author="Joseph Guhlin",
     author_email="joseph.guhlin@gmail.com",
     description="Re-implementation of lostruct in Python",
