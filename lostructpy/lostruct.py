@@ -1,20 +1,10 @@
 from itertools import islice
 import numpy as np
-#import operator as op
-#import pandas as pd
 from math import sqrt
-#import scipy.linalg
-#from sklearn.preprocessing import normalize
-#from sklearn.manifold import MDS
-#from skbio.stats.ordination import pcoa
 from numba import jit
 from cyvcf2 import VCF
 import sparse
 
-# Need to cite:
-# https://github.com/brentp/cyvcf2
-
-# newer, cyvcf2 version
 def get_landmarks(vcf_file):
     return VCF(vcf_file).seqnames
 
@@ -30,7 +20,7 @@ def partition_all(n, iterable):
         yield y
 
 # Split by chromosome
-def get_snps(file, landmark, min_af = 0.0, max_af = 1.0):
+def get_snps(file, landmark):
     vcf_reader = VCF(file, gts012=True)(landmark)
     for record in vcf_reader:
         yield record
@@ -45,63 +35,38 @@ def get_gts(x):
     return gts
 
 def parse_vcf(vcf_file, landmark, window_size):
+    snp_generator = partition_all(window_size, get_snps(vcf_file, landmark))
     windows = list()
     positions = list()
-    
-    window = list()
-    window_positions = list()
-    
-    i = 0
-
-    # Far less elegant, but slightly faster
-    vcf_reader = VCF(vcf_file, gts012=True)(landmark)
-    for record in vcf_reader:
-        if i == window_size:
-            window = np.asarray(window).astype(np.float32)
-            window[window == 3.] = np.nan
-            windows.append(sparse.COO(window))
-            positions.append(window_positions)
-            window = list()
-            window_positions = list()
-            i = 0
-        window.append(record.gt_types)
-        window_positions.append(record.POS)
-        i = i + 1
-        
-#        for window in snp_generator:
-            # Should mask it instead of missing it...
-#            if (len(window) < window_size):
-#                break
-#            gts = sparse.COO(np.asarray([get_gts(i) for i in window]))
-#            pos = [y.POS for y in window]
-#            windows.append(gts)
-#            positions.append(pos)
-
-        
-    print("Final window size of {} ignored.".format(i))
+    for window in snp_generator:
+        # Should mask it instead of skipping it...
+        if (len(window) < window_size):
+            break
+        gts = [get_gts(i) for i in window]
+        pos = [y.POS for y in window]
+        windows.append(sparse.COO(np.asarray(gts)))
+        positions.append(pos)
 
     return windows, positions
 
-# Effectively, this is lostruct-py
-
 # Input files should be bgzip vcfs with tabix idx, bcf with idx should probably work too
 
-# DONE! cov_pca matches the output from lostruct now!
-def cov_pca(snps,w,k):
+def cov_pca(snps,k,w=None):
+    if w is not None:
+        raise ValueError("Weights are not implemented. Please open a github issue and this will be resolved.")
+
     n = len(snps)
     rowmeans = np.nanmean(snps, axis=1)
     rowmeans = np.reshape(rowmeans, (n, 1))
     subtracted = np.array(snps - rowmeans, dtype=np.float64)
     #covmat = np.cov(subtracted) # Not using weights, so ignoring that part from lostruct
-#    covmat = pd.DataFrame(subtracted).cov()
+    #covmat = pd.DataFrame(subtracted).cov()
     covmat = np.ma.cov(np.ma.array(subtracted, mask=np.isnan(subtracted)), rowvar=False)
-
-    #covmat = np.ma.cov(np.ma.array(subtracted, mask=np.isnan(subtracted)))
     #covmat = np.ma.cov(subtracted)
-    sqrt_w = np.repeat(sqrt(w), covmat.shape[0])
+    #sqrt_w = np.repeat(sqrt(w), covmat.shape[0])
 
     # This is the first returned argument for cov_pca in R
-    first_return_arg = np.sum(np.power(covmat, 2).flatten())
+    total_variance = np.sum(np.power(covmat, 2).flatten())
     #first_return_arg = np.sum(np.power(covmat, 2).flatten())
     vals, vectors = np.linalg.eig(covmat)
 
@@ -109,13 +74,15 @@ def cov_pca(snps,w,k):
     for i in range(k):
         eigenvecs.append(vectors[:,i])
 
-    eigenvals = vals[0:k]
+    #eigenvals = vals[0:k]
     #eigenvals.astype(np.float64)
+
+    # assert(np.array_equal(eigenvecs, vectors[:k]))
     
-    return covmat, first_return_arg, eigenvals, np.asarray(eigenvecs, dtype=np.float64)
+    return covmat, total_variance, vals[0:k], np.asarray(eigenvecs, dtype=np.float64)
 
 def eigen_windows(snps, k):
-    return cov_pca(snps.todense(), 1, k)
+    return cov_pca(snps.todense(), k)
 
 # TODO: Implement L2 norm (and others?)
 def l1_norm(eigenvals):

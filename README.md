@@ -36,7 +36,7 @@ CyVCF2 requires zlib-dev, libbz2-dev, libcurl-dev, liblzma-dev, and probably oth
 Easiest to install all of these through conda
 
 # Correlation Data
-Used Medicago HapMap sister taxa chromsoome 1, processed, and run with LoStruct
+Used Medicago HapMap sister taxa chromsome 1, processed, and run with LoStruct
 
 ## Data
 ```bcftools annotate chr1-filtered-set-2014Apr15.bcf -x INFO,FORMAT | bcftools view -a -i 'F_MISSING<=0.2' | bcftools view -q 0.05 -q 0.95 -m2 -M2 -a -Oz -o chr1-filtered.vcf.gz```
