@@ -2,12 +2,15 @@
 
 This is a reimplementation of lostruct from the original code: [Lostruct](https://github.com/petrelharp/local_pca). Please cite the original paper
 
+# Demonstration / How to use
+Please see the [Example Notebook](https://nbviewer.jupyter.org/github/jguhlin/lostruct-py/blob/master/Lostruct-py%20Example.ipynb)
+
 ## Citing
 
 ### Original Lostruct Paper
 Please cite the original lostruct paper:
 ```
- Li, Han, and Peter Ralph. "Local PCA shows how the effect of population structure differs along the genome." Genetics 211.1 (2019): 289-304.
+Li, Han, and Peter Ralph. "Local PCA shows how the effect of population structure differs along the genome." Genetics 211.1 (2019): 289-304.
 ```
 
 ### CyVCF2
@@ -31,14 +34,16 @@ CyVCF2 requires zlib-dev, libbz2-dev, libcurl-dev, liblzma-dev, and probably oth
 
 Easiest to install all of these through conda
 
-# Demonstration / How to use
-Please see the [Example Notebook](https://nbviewer.jupyter.org/github/jguhlin/lostruct-py/blob/master/Lostruct-py%20Example.ipynb)
+# Correlation Data
+Used Medicago HapMap sister taxa chromsoome 1, processed, and run with LoStruct
 
 ## Data
 ```bcftools annotate chr1-filtered-set-2014Apr15.bcf -x INFO,FORMAT | bcftools view -a -i 'F_MISSING<=0.2' | bcftools view -q 0.05 -q 0.95 -m2 -M2 -a -Oz -o chr1-filtered.vcf.gz```
 
-# Lostruct / Lostruct-py comparison
+## Lostruct Processing
 ```Rscript run_lostruct.R -t SNP -s 95 -k 10 -m 10 -i data/```
+
+This generates the mds_coords.tsv that is used in the correlation comparison.
 
 # FAQ / Notes
 
