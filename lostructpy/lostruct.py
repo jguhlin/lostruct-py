@@ -69,13 +69,15 @@ def cov_pca(snps,w,k):
     rowmeans = np.reshape(rowmeans, (n, 1))
     subtracted = np.array(snps - rowmeans, dtype=np.float64)
     #covmat = np.cov(subtracted) # Not using weights, so ignoring that part from lostruct
-    covmat = pd.DataFrame(subtracted).cov()
+#    covmat = pd.DataFrame(subtracted).cov()
+    covmat = np.ma.cov(np.ma.array(subtracted, mask=np.isnan(subtracted)), rowvar=False)
+
     #covmat = np.ma.cov(np.ma.array(subtracted, mask=np.isnan(subtracted)))
     #covmat = np.ma.cov(subtracted)
     sqrt_w = np.repeat(sqrt(w), covmat.shape[0])
 
     # This is the first returned argument for cov_pca in R
-    first_return_arg = np.sum(np.power(covmat, 2).values.flatten())
+    first_return_arg = np.sum(np.power(covmat, 2).flatten())
     #first_return_arg = np.sum(np.power(covmat, 2).flatten())
     vals, vectors = np.linalg.eig(covmat)
 
