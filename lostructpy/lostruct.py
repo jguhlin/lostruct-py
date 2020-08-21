@@ -60,8 +60,9 @@ def cov_pca(snps,k,w=1):
     #covmat = pd.DataFrame(subtracted).cov()
     covmat = np.ma.cov(np.ma.array(subtracted, mask=np.isnan(subtracted)), rowvar=False)
     #covmat = np.ma.cov(subtracted)
-    if w != 1:
-        sqrt_w = np.repeat(sqrt(w), covmat.shape[0])
+    if np.all(w != 1):
+        #sqrt_w = np.repeat(np.sqrt(w), covmat.shape[0])
+        sqrt_w = np.sqrt(w)
         covmat = np.multiply(covmat, sqrt_w.T)
         covmat = np.multiply(covmat, sqrt_w)
 
