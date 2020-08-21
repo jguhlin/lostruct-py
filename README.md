@@ -5,22 +5,23 @@ This is a reimplementation of lostruct from the original code: [Lostruct](https:
 # Demonstration / How to use
 Please see the [Example Notebook](https://nbviewer.jupyter.org/github/jguhlin/lostruct-py/blob/master/Lostruct-py%20Example.ipynb)
 
-## Citing
+# Citing
 
-### Original Lostruct Paper
+## Original Lostruct Paper
 Please cite the original lostruct paper:
 ```
 Li, Han, and Peter Ralph. "Local PCA shows how the effect of population structure differs along the genome." Genetics 211.1 (2019): 289-304.
 ```
 
-### CyVCF2
+## CyVCF2
 This paper also uses [cyvcf2](https://github.com/brentp/cyvcf2) for fast VCF processing and should be cited:
 
 ```
 Brent S Pedersen, Aaron R Quinlan, cyvcf2: fast, flexible variant analysis with Python, Bioinformatics, Volume 33, Issue 12, 15 June 2017, Pages 1867–1869, https://doi.org/10.1093/bioinformatics/btx057
 ```
 
-## Requirements
+# Requirements
+Python >= 3.6 (may work with older versions)
 
 * numba
 * numpy

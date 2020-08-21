@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="lostruct-py-jguhlin",
+    name="lostruct-py",
     version="0.0.1",
     author="Joseph Guhlin",
     author_email="joseph.guhlin@gmail.com",

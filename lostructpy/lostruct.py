@@ -1,12 +1,12 @@
 from itertools import islice
 import numpy as np
-import operator as op
+#import operator as op
 import pandas as pd
 from math import sqrt
-import scipy.linalg
-from sklearn.preprocessing import normalize
-from sklearn.manifold import MDS
-from skbio.stats.ordination import pcoa
+#import scipy.linalg
+#from sklearn.preprocessing import normalize
+#from sklearn.manifold import MDS
+#from skbio.stats.ordination import pcoa
 from numba import jit
 from cyvcf2 import VCF
 
