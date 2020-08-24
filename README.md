@@ -48,14 +48,30 @@ CyVCF2 requires zlib-dev, libbz2-dev, libcurl-dev, liblzma-dev, and probably oth
 
 Easiest to install all of these through conda
 
+# Tests
+
+Tests were derived from [Medicago HapMap data](http://www.medicagohapmap.org/downloads/Mt40/Mt4.0_HapMap_README.pdf). While the software had high correlation with lostruct R the values were determined. If values begin to deviate from the method these tests will now fail.
+
+To run tests simply use:
+```py.test```
+
+You may need to preinstall ```pip install pytest```
+
+## TOX
+Tox allows you run tests with multiple versions of the python interpreter in venvs. It is best to use pyenv to install multiple versions python to run before submitting pull requests to be certain tests complete successfully across all versions.
+
 # Correlation Data
-Used Medicago HapMap sister taxa chromsome 1, processed, and run with LoStruct
+Used Medicago HapMap sister taxa chromsome 1, processed, and run with LoStruct R.
+
+```./run_lostruct.R -i data -t snp -s 95```
 
 ## Data
 ```bcftools annotate chr1-filtered-set-2014Apr15.bcf -x INFO,FORMAT | bcftools view -a -i 'F_MISSING<=0.2' | bcftools view -q 0.05 -q 0.95 -m2 -M2 -a -Oz -o chr1-filtered.vcf.gz```
 
 ## Lostruct Processing
 ```Rscript run_lostruct.R -t SNP -s 95 -k 10 -m 10 -i data/```
+
+Run 21 Aug 2020, using lostruct R git hash: 444b8c64bebdf7cdd0323e7735ccadddfc1c8989
 
 This generates the mds_coords.tsv that is used in the correlation comparison.
 
