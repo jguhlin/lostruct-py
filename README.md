@@ -79,7 +79,3 @@ Currently the end-user is expected to save the outputs. But could be good to sav
 
 ## PCA, MDS, PCoA
 PCoA returns the same results as lostruct's MDS implementation (cmdscale). In the example Jupyter notebook you can see the correlation is R =~ 0.998. Some examples of other methods of clustering / looking at differences are included in the notebook.
-
-## Casting complex values to real discards the imaginary part
-This is fine.
-
