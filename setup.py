@@ -16,7 +16,7 @@ setuptools.setup(
     keywords='structure, population, genomics, bioinformatics, PCA, MDS',
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: Python Software Foundation License"
+        "License :: OSI Approved :: Python Software Foundation License",
         "Operating System :: OS Independent",
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
