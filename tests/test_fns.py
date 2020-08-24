@@ -51,6 +51,11 @@ class TestCalculations(unittest.TestCase):
     def test_cov_pca(self):
         windows, _ = ls.parse_vcf(vcf_file, "chr1", 99)
         covmat, total_variance, eigenvals, eigenvecs = ls.cov_pca(windows[0].todense(), 5, 1)
+
+        # Given our VCF test dataset VCF file, compare that the matrices are
+        # the same as a successful run performed of 24 Aug 2020.
+        # The values here are the result of np.abs np.sum of the outputs of cov_pca
+        # Any significant deviation means something has messed up somewhere else
         self.assertAlmostEqual(np.sum(covmat), -0.4784263654778492, delta=self.error_tolerance)
         self.assertAlmostEqual(np.sum(total_variance), 0.9265612493057297, delta=self.error_tolerance)
         self.assertAlmostEqual(np.sum(eigenvals), 1.735862014813605, delta=self.error_tolerance)
