@@ -7,6 +7,10 @@ This is a reimplementation of lostruct from the original code: [Lostruct](https:
 # Demonstration / How to use
 Please see the [Example Notebook](https://nbviewer.jupyter.org/github/jguhlin/lostruct-py/blob/master/Lostruct-py%20Example.ipynb)
 
+# Installation
+Lostruct-py is available on [PyPi](https://pypi.org/project/lostruct-py/)
+```pip install lostruct-py``` is the easiest way to get started.
+
 # Citing
 Please use our DOI to cite this specific project. Also please cite the original Lostruct paper and CyVCF2. 
 
@@ -29,7 +33,7 @@ Brent S Pedersen, Aaron R Quinlan, cyvcf2: fast, flexible variant analysis with 
 Please note numpy and R are different when it comes to row-major vs. column-major. Essentially, many things in the python version will be transposed from R.
 
 # Requirements
-Python >= 3.6 (may work with older versions)
+Python >= 3.6 (may work with older versions). Developed on Python 3.8.5
 
 * numba
 * numpy
@@ -55,6 +59,9 @@ Used Medicago HapMap sister taxa chromsome 1, processed, and run with LoStruct
 This generates the mds_coords.tsv that is used in the correlation comparison.
 
 # FAQ / Notes
+
+## Future
+Currently the end-user is expected to save the outputs. But could be good to save it in a similar way to lostruct R-code. Please open an issue if you need this.
 
 ## PCA, MDS, PCoA
 PCoA returns the same results as lostruct's MDS implementation (cmdscale). In the example Jupyter notebook you can see the correlation is R =~ 0.998. Some examples of other methods of clustering / looking at differences are included in the notebook.
