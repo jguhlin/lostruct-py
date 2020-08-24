@@ -1,11 +1,11 @@
 language: python
+dist: bionic
 python:
   - "3.6"
   - "3.7"
   - "3.8"
-  - "3.8-dev"
-  - "nightly"
 install:
+  - sudo apt-get install libcurl4-openssl-dev
   - pip install -r requirements.txt
 script:
   - py.test

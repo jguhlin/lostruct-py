@@ -24,7 +24,7 @@ Brent S Pedersen, Aaron R Quinlan, cyvcf2: fast, flexible variant analysis with 
 ```
 
 # Changes from Lostruct R package
-Please note numpy and R are different when it comes to row-major vs. column-major.
+Please note numpy and R are different when it comes to row-major vs. column-major. Essentially, many things in the python version will be transposed from R.
 
 # Requirements
 Python >= 3.6 (may work with older versions)

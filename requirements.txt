@@ -13,8 +13,6 @@ hdmedians==0.13
 humanfriendly==8.2
 idna==2.10
 iniconfig==1.0.1
-ipython==7.17.0
-ipython-genutils==0.2.0
 jedi==0.17.2
 joblib==0.16.0
 kiwisolver==1.2.0
@@ -25,9 +23,8 @@ more-itertools==8.4.0
 msgpack==1.0.0
 natsort==7.0.1
 numba==0.51.0
-numpy==1.19.1
+numpy
 packaging==20.4
-pandas==1.1.1
 parso==0.7.1
 pexpect==4.8.0
 pickleshare==0.7.5
@@ -41,10 +38,9 @@ pyparsing==2.4.7
 pytest==6.0.1
 python-dateutil==2.8.1
 pytz==2020.1
-requests==2.24.0
-scikit-bio==0.5.6
-scikit-learn==0.23.2
-scipy==1.5.2
+scikit-bio
+scikit-learn
+scipy
 six==1.15.0
 sparse==0.11.0
 threadpoolctl==2.1.0
