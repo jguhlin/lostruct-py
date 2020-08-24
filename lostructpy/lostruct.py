@@ -82,10 +82,10 @@ def cov_pca(snps,k,w=1):
     
     return covmat, total_variance, vals[0:k], np.asarray(eigenvecs, dtype=np.float64)
 
+# I think this became a wrapper function for cov_pca...
 def eigen_windows(snps, k, w):
     return cov_pca(snps.todense(), k, w)
 
-# TODO: Implement L2 norm (and others?)
 def l1_norm(eigenvals):
     z = np.vstack(eigenvals)
     norm = np.linalg.norm(z, ord=1, axis=1, keepdims=True)
@@ -95,7 +95,6 @@ def l1_norm(eigenvals):
 # w = weight to apply
 # norm = normalization to apply (L1 or L2)
 
-# return covmat, first_return_arg, eigenvals, eigenvecs
 def get_pc_dists(windows):
     n = len(windows)
     vals = l1_norm([x[2] for x in windows])
