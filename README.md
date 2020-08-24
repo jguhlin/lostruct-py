@@ -2,13 +2,15 @@
 
 This is a reimplementation of lostruct from the original code: [Lostruct](https://github.com/petrelharp/local_pca). Please cite the original paper
 
-[![Build Status](https://travis-ci.org/jguhlin/lostruct-py.svg?branch=master)](https://travis-ci.org/jguhlin/lostruct-py)
+[![Build Status](https://travis-ci.org/jguhlin/lostruct-py.svg?branch=master)](https://travis-ci.org/jguhlin/lostruct-py) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3997086.svg)](https://doi.org/10.5281/zenodo.3997086)
 
 # Demonstration / How to use
 Please see the [Example Notebook](https://nbviewer.jupyter.org/github/jguhlin/lostruct-py/blob/master/Lostruct-py%20Example.ipynb)
 
 # Citing
-Please use our DOI to cite this specific project. Also please cite the original Lostruct paper and CyVCF2.
+Please use our DOI to cite this specific project. Also please cite the original Lostruct paper and CyVCF2. 
+
+DOI: 10.5281/zenodo.3997086
 
 ## Original Lostruct Paper
 Please cite the original lostruct paper:
