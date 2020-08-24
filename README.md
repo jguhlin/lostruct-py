@@ -38,24 +38,21 @@ Python >= 3.6 (may work with older versions). Developed on Python 3.8.5
 
 * numba
 * numpy
-* pandas
-* scipy
-* skbio
-* sklearn
 * cyvcf2
 
-CyVCF2 requires zlib-dev, libbz2-dev, libcurl-dev, liblzma-dev, and probably others
-
-Easiest to install all of these through conda
+CyVCF2 requires zlib-dev, libbz2-dev, libcurl-dev, liblzma-dev; numa requires libllvm.
+These may be installed with `conda` or `pip`, e.g. by running `pip install -r requirements.txt`.
 
 # Tests
 
 Tests were derived from [Medicago HapMap data](http://www.medicagohapmap.org/downloads/Mt40/Mt4.0_HapMap_README.pdf). While the software had high correlation with lostruct R the values were determined. If values begin to deviate from the method these tests will now fail.
 
-To run tests simply use:
-```py.test```
+To run tests simply do:
+```
+python -m nose
+```
 
-You may need to preinstall ```pip install pytest```
+The tests furthermore require `unittest` and `scikit-bio` (and, `nose` to run them this way).
 
 ## TOX
 Tox allows you run tests with multiple versions of the python interpreter in venvs. It is best to use pyenv to install multiple versions python to run before submitting pull requests to be certain tests complete successfully across all versions.
@@ -82,7 +79,3 @@ Currently the end-user is expected to save the outputs. But could be good to sav
 
 ## PCA, MDS, PCoA
 PCoA returns the same results as lostruct's MDS implementation (cmdscale). In the example Jupyter notebook you can see the correlation is R =~ 0.998. Some examples of other methods of clustering / looking at differences are included in the notebook.
-
-## Casting complex values to real discards the imaginary part
-This is fine.
-

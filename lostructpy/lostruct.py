@@ -71,16 +71,10 @@ def cov_pca(snps,k,w=1):
     #first_return_arg = np.sum(np.power(covmat, 2).flatten())
     vals, vectors = np.linalg.eig(covmat)
 
-    eigenvecs = list()
-    for i in range(k):
-        eigenvecs.append(vectors[:,i])
-
-    #eigenvals = vals[0:k]
-    #eigenvals.astype(np.float64)
-
-    # assert(np.array_equal(eigenvecs, vectors[:k]))
+    vals = vals[:k].real.astype(np.float64)
+    vectors = vectors[:,:k].T.real.astype(np.float64)
     
-    return covmat, total_variance, vals[0:k], np.asarray(eigenvecs, dtype=np.float64)
+    return covmat, total_variance, vals, vectors
 
 # I think this became a wrapper function for cov_pca...
 def eigen_windows(snps, k, w):
@@ -101,7 +95,7 @@ def get_pc_dists(windows):
     comparison = np.zeros((n, n), dtype=np.float64)
     upper_triangle = zip(*np.triu_indices(n, k=1))
     
-    vals = vals.astype(np.float64)
+    vals = vals.real.astype(np.float64)
 
     for i,j in upper_triangle:
         comparison[i,j] = dist_sq_from_pcs(vals[i], vals[j], windows[i][3], windows[j][3])
