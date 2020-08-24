@@ -2,10 +2,13 @@
 
 This is a reimplementation of lostruct from the original code: [Lostruct](https://github.com/petrelharp/local_pca). Please cite the original paper
 
+[![Build Status](https://travis-ci.org/jguhlin/lostruct-py.svg?branch=master)](https://travis-ci.org/jguhlin/lostruct-py)
+
 # Demonstration / How to use
 Please see the [Example Notebook](https://nbviewer.jupyter.org/github/jguhlin/lostruct-py/blob/master/Lostruct-py%20Example.ipynb)
 
 # Citing
+Please use our DOI to cite this specific project. Also please cite the original Lostruct paper and CyVCF2.
 
 ## Original Lostruct Paper
 Please cite the original lostruct paper:
@@ -19,6 +22,9 @@ This paper also uses [cyvcf2](https://github.com/brentp/cyvcf2) for fast VCF pro
 ```
 Brent S Pedersen, Aaron R Quinlan, cyvcf2: fast, flexible variant analysis with Python, Bioinformatics, Volume 33, Issue 12, 15 June 2017, Pages 1867–1869, https://doi.org/10.1093/bioinformatics/btx057
 ```
+
+# Changes from Lostruct R package
+Please note numpy and R are different when it comes to row-major vs. column-major.
 
 # Requirements
 Python >= 3.6 (may work with older versions)
