@@ -41,21 +41,23 @@ def test_parse_vcf():
     assert(positions[0][0] == 59864)
     assert(isinstance(windows[0], sparse.COO))
 
+error_tolerance = 0.00000001
+
 def test_cov_pca():
     windows, _ = ls.parse_vcf(vcf_file, "chr1", 99)
     covmat, total_variance, eigenvals, eigenvecs = ls.cov_pca(windows[0].todense(), 5, 1)
-    assert(np.sum(covmat) == -0.4784263654778492)
-    assert(np.sum(total_variance) == 0.9265612493057297)
-    assert(np.sum(eigenvals) == 1.735862014813605)
-    assert(np.sum(eigenvecs) == 0.13157175919284625)
+    assert(np.abs(np.sum(covmat) - -0.4784263654778492) <= error_tolerance)
+    assert(np.abs(np.sum(total_variance) - 0.9265612493057297) <= error_tolerance)
+    assert(np.abs(np.sum(eigenvals) - 1.735862014813605) <= error_tolerance)
+    assert(np.abs(np.sum(eigenvecs) - 0.13157175919284625) <= error_tolerance)
 
 def test_eigen_windows():
     windows, _ = ls.parse_vcf(vcf_file, "chr1", 99)
     covmat, total_variance, eigenvals, eigenvecs = ls.eigen_windows(windows[0], 5, 1)
-    assert(np.sum(covmat) == -0.4784263654778492)
-    assert(np.sum(total_variance) == 0.9265612493057297)
-    assert(np.sum(eigenvals) == 1.735862014813605)
-    assert(np.sum(eigenvecs) == 0.13157175919284625)
+    assert(np.abs(np.sum(covmat) - -0.4784263654778492) <= error_tolerance)
+    assert(np.abs(np.sum(total_variance) - 0.9265612493057297) <= error_tolerance)
+    assert(np.abs(np.sum(eigenvals) - 1.735862014813605) <= error_tolerance)
+    assert(np.abs(np.sum(eigenvecs) - 0.13157175919284625) <= error_tolerance)
 
 def test_l1_norm():
     windows, _ = ls.parse_vcf(vcf_file, "chr1", 99)
@@ -73,7 +75,7 @@ def test_get_pcs_dists():
     pc_dists = ls.get_pc_dists(result)
 
     assert(pc_dists[0][0] == 0.0)
-    assert(pc_dists[0][3] == 0.30474948474286145)
+    assert(np.abs(pc_dists[0][3] - 0.30474948474286145) <= error_tolerance)
 
 def test_compare_to_rcode():
     windows, _ = ls.parse_vcf(vcf_file, "chr1", 95)
