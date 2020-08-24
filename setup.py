@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="lostruct-py",
-    version="0.0.2-notdoneyet",
+    version="0.0.2",
     author="Joseph Guhlin",
     author_email="joseph.guhlin@gmail.com",
     description="Re-implementation of lostruct in Python, used to compare local population structure across populations.",
