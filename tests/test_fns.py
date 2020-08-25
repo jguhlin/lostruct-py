@@ -1,4 +1,4 @@
-import lostructpy as ls
+import lostruct.lostruct as ls
 import cyvcf2 as vcf
 import sparse
 import numpy as np
@@ -38,7 +38,7 @@ class TestVcf(unittest.TestCase):
         self.assertEqual(gts[-1], 2.)
 
     def test_parse_vcf(self):
-        windows, positions = ls.parse_vcf(vcf_file, "chr1", 99)
+        windows, positions = ls.parse_vcf(vcf_file, "chr1", 99, ls.Window.SNP)
         self.assertEqual(len(windows), 119)
         self.assertEqual(len(positions), len(windows))
         self.assertEqual(positions[0][0], 59864)
