@@ -1,9 +1,10 @@
 # lostruct-py
 
-This is a reimplementation of lostruct from the original code: [Lostruct](https://github.com/petrelharp/local_pca). Please cite the original paper
+This is a reimplementation of lostruct from the original code: [lostruct](https://github.com/petrelharp/local_pca),
+by [Joseph Guhlin](https://github.com/jguhlin) with assistance by [Peter Ralph](https://github.com/petrelharp).
 
-[![Build Status](https://travis-ci.org/jguhlin/lostruct-py.svg?branch=master)](https://travis-ci.org/jguhlin/lostruct-py) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3997106.svg)](https://doi.org/10.5281/zenodo.3997106)
-
+[![Build Status](https://travis-ci.org/jguhlin/lostruct-py.svg?branch=master)](https://travis-ci.org/jguhlin/lostruct-py)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3997106.svg)](https://doi.org/10.5281/zenodo.3997106)
 
 # Demonstration / How to use
 Please see the [Example Notebook](https://nbviewer.jupyter.org/github/jguhlin/lostruct-py/blob/master/Lostruct-py%20Example.ipynb)
@@ -13,12 +14,8 @@ Lostruct-py is available on [PyPi](https://pypi.org/project/lostruct-py/)
 ```pip install lostruct-py``` is the easiest way to get started.
 
 # Citing
-Please use our DOI to cite this specific project. Also please cite the original Lostruct paper and CyVCF2. 
-
-DOI: 10.5281/zenodo.3997106
-
-## Original Lostruct Paper
-Please cite the original lostruct paper:
+If you use this version, plesae cite it via the zenodo [DOI: 10.5281/zenodo.3997106](https://doi.org/10.5281/zenodo.3997106)
+as well as the original paper describing the method:
 ```
 Li, Han, and Peter Ralph. "Local PCA shows how the effect of population structure differs along the genome." Genetics 211.1 (2019): 289-304.
 ```
