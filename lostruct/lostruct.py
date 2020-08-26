@@ -147,10 +147,24 @@ def l1_norm(eigenvals):
     norm = np.linalg.norm(z, ord=1, axis=1, keepdims=True)
     return z / norm
 
+@jit(nopython=True, parallel=True)
+def calc_dists(n, vals, eigenvecs):
+    comparison = np.zeros((n, n), dtype=np.float64)
+    upper_triangle = zip(*np.triu_indices(n, k=1))
+    
+    vals = vals.real.astype(np.float64)
+
+    for i,j in upper_triangle:
+        comparison[i,j] = dist_sq_from_pcs(vals[i], vals[j], eigenvecs[i], eigenvecs[j])
+
+    # Make symmetric
+    comparison = comparison + comparison.T
+
+    return comparison
+
 # k = number of primary components
 # w = weight to apply
 # norm = normalization to apply (L1 or L2)
-
 def get_pc_dists(windows):
     """
     Calculate distances between window matrices.
@@ -158,17 +172,11 @@ def get_pc_dists(windows):
     Works on only the upper triangle of the matrix, but clones the data into the lower half as well.
     """
     n = len(windows)
-    vals = l1_norm([x[2] for x in windows])
-    comparison = np.zeros((n, n), dtype=np.float64)
-    upper_triangle = zip(*np.triu_indices(n, k=1))
-    
+    vals = l1_norm(np.asarray([x[2] for x in windows]))
     vals = vals.real.astype(np.float64)
 
-    for i,j in upper_triangle:
-        comparison[i,j] = dist_sq_from_pcs(vals[i], vals[j], windows[i][3], windows[j][3])
+    comparison = calc_dists(n, vals, np.asarray([x[3] for x in windows]))
 
-    # Make symmetric
-    comparison = comparison + comparison.T
     # Remove negatives...
     comparison[comparison < 0] = 0
 
