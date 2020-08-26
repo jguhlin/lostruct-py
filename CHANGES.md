@@ -6,6 +6,9 @@
 * Added more information to tutorial / jupyter notebook demonstration
 * Added argument support for SNPs by window or by base pair length -- Not yet implemented
 * Added support for weights - Not yet tested!
+* Support for benchmarks
+* Support for fastmath Numba for some functions, along with testing and correlation comparisons
+* Experimentation with pcoa method="fsvd"
 
 # Release 0.0.3
 Minor typo fix for PyPi

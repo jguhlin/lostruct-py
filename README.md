@@ -45,6 +45,14 @@ Python >= 3.6 (may work with older versions). Developed on Python 3.8.5
 CyVCF2 requires zlib-dev, libbz2-dev, libcurl-dev, liblzma-dev; numa requires libllvm.
 These may be installed with `conda` or `pip`, e.g. by running `pip install -r requirements.txt`.
 
+# Changes
+See [CHANGES.MD](CHANGES.md) for the full list.
+
+## 0.0.4
+* Package name changed to lostruct
+* Parallelization of get_pc_dists
+* Implementation of fastmath parameter for get_pc_dists
+
 # Tests
 
 Tests were derived from [Medicago HapMap data](http://www.medicagohapmap.org/downloads/Mt40/Mt4.0_HapMap_README.pdf). While the software had high correlation with lostruct R the values were determined. If values begin to deviate from the method these tests will now fail.
