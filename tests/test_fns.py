@@ -87,6 +87,17 @@ class TestCalculations(unittest.TestCase):
         self.assertEqual(pc_dists[0][0], 0.0)
         self.assertAlmostEqual(pc_dists[0][3], 0.30474948474286145, delta=self.error_tolerance)
 
+    def test_get_pcs_dists_fastmath(self):
+        windows, _ = ls.parse_vcf(vcf_file, "chr1", 99)
+        result = list()
+        for x in take(4, windows):
+            result.append(ls.eigen_windows(x, 10, 1))
+        result = np.vstack(result)
+        pc_dists = ls.get_pc_dists(result, fastmath=True)
+
+        self.assertEqual(pc_dists[0][0], 0.0)
+        self.assertAlmostEqual(pc_dists[0][3], 0.30474948474286145, delta=self.error_tolerance)
+
     def test_compare_to_rcode(self):
         windows, _ = ls.parse_vcf(vcf_file, "chr1", 95)
         covmat, total_variance, eigenvals, eigenvecs = ls.cov_pca(windows[0].todense(), 10, 1)
@@ -118,3 +129,9 @@ class TestCalculations(unittest.TestCase):
         mds = skbio.stats.ordination.pcoa(pc_dists)
         # Comes out as 0.9971509982243156
         self.assertTrue(np.corrcoef(mds.samples['PC1'], mds_coords)[0][1] >= 0.995)
+
+        pc_dists = ls.get_pc_dists(result, fastmath=True)
+        mds = skbio.stats.ordination.pcoa(pc_dists)
+        # Comes out as 0.9971509982243156
+        self.assertTrue(np.corrcoef(mds.samples['PC1'], mds_coords)[0][1] >= 0.995)
+

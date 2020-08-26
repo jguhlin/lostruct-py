@@ -86,6 +86,9 @@ PCoA returns the same results as lostruct's MDS implementation (cmdscale). In th
 ## Speed and Memory
 NUMBA and CyVCF2 are used for speeding up processes, and the software becomes multithreaded by default. The Sparse library is used to reduce memory requirements. parse_vcf function is multithreaded. Distance calculation is not.
 
+Additionally, a mode implemented Numba's "fastmath" is available. For the function get_pc_dists() set fastmath=True. This results in a ~8% speed boost with very little change in the final output (correlation to R code output remains >= 0.995). This was benchmarked on the Medicago data used in the jupyter notebook using timeit, with 100 repeats with fastmath=False and Fastmath=True.
+```get_pc_dists(result, fastmath=True)```
+
 If you need to limit thread usage, please see [Numba's guide](https://numba.pydata.org/numba-doc/latest/user/threading-layer.html#setting-the-number-of-threads)
 
 ### Very Large Datasets

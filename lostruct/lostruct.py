@@ -54,6 +54,7 @@ def get_gts(x):
     gts[gts == 3.] = np.nan
     return gts
 
+# Input files should be bgzip vcfs with tabix idx, bcf with idx should probably work too
 def parse_vcf(vcf_file, landmark, window_size, window_type=Window.SNP):
     """
     Parse a VCF (or BCF) file. Must be properly indexed (see: bcftools index command)
@@ -87,8 +88,7 @@ def parse_vcf(vcf_file, landmark, window_size, window_type=Window.SNP):
 
     return windows, positions
 
-# Input files should be bgzip vcfs with tabix idx, bcf with idx should probably work too
-
+@jit(nopython=False, parallel=True, forceobj=True)
 def cov_pca(snps,k,w=1):
     """
     Returns the covariance matrix, total variance, eigenvalues, eigenvectors for a given SNP window. Returns top k components.
@@ -144,11 +144,38 @@ def l1_norm(eigenvals):
     Applies l1 norm to a set of eigenvalues.
     """
     z = np.vstack(eigenvals)
+    # Because of the norm fn below, we can't use numba
+    # Possible to redo the data, but not sure the benefit would be worth it
     norm = np.linalg.norm(z, ord=1, axis=1, keepdims=True)
     return z / norm
 
+@jit(nopython=True, parallel=True, fastmath=True)
+def calc_dists_fastmath(n, vals, eigenvecs):
+    """
+    Calculate the distances of windows given a set of eigenvectors and normalized eigenvalues. Called from get_pc_dist() function.
+
+    This is separated out to take advantage of Numba optimizations.
+    """
+    comparison = np.zeros((n, n), dtype=np.float64)
+    upper_triangle = zip(*np.triu_indices(n, k=1))
+    
+    vals = vals.real.astype(np.float64)
+
+    for i,j in upper_triangle:
+        comparison[i,j] = dist_sq_from_pcs_fastmath(vals[i], vals[j], eigenvecs[i], eigenvecs[j])
+
+    # Make symmetric
+    comparison = comparison + comparison.T
+
+    return comparison
+
 @jit(nopython=True, parallel=True)
 def calc_dists(n, vals, eigenvecs):
+    """
+    Calculate the distances of windows given a set of eigenvectors and normalized eigenvalues. Called from get_pc_dist() function.
+
+    This is separated out to take advantage of Numba optimizations.
+    """
     comparison = np.zeros((n, n), dtype=np.float64)
     upper_triangle = zip(*np.triu_indices(n, k=1))
     
@@ -165,7 +192,7 @@ def calc_dists(n, vals, eigenvecs):
 # k = number of primary components
 # w = weight to apply
 # norm = normalization to apply (L1 or L2)
-def get_pc_dists(windows):
+def get_pc_dists(windows, fastmath=False):
     """
     Calculate distances between window matrices.
 
@@ -175,15 +202,26 @@ def get_pc_dists(windows):
     vals = l1_norm(np.asarray([x[2] for x in windows]))
     vals = vals.real.astype(np.float64)
 
-    comparison = calc_dists(n, vals, np.asarray([x[3] for x in windows]))
+    if fastmath:
+        comparison = calc_dists_fastmath(n, vals, np.asarray([x[3] for x in windows]))
+    else:
+        comparison = calc_dists(n, vals, np.asarray([x[3] for x in windows]))
 
-    # Remove negatives...
+    # Remove negatives... Can't be placed within Numba code
     comparison[comparison < 0] = 0
 
     # Get square root
     return np.sqrt(comparison)
 
-@jit(nopython=True, parallel=True)
+@jit(nopython=True, parallel=True, fastmath=True)
+def dist_sq_from_pcs_fastmath(v1, v2, xvec, yvec):
+    """
+    Given two matrices, calculates the distance between them.
+    """
+    Xt = np.dot(xvec, yvec.T)
+    return np.square(v1).sum() + np.square(v2).sum() - 2 * np.sum(v1*np.sum(Xt*(v2*Xt), axis=1))
+
+@jit(nopython=True, parallel=True, fastmath=False)
 def dist_sq_from_pcs(v1, v2, xvec, yvec):
     """
     Given two matrices, calculates the distance between them.
