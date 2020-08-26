@@ -117,4 +117,4 @@ For more information please see the [applicable documentation](http://scikit-bio
 
 # References
 
-Please see [CITATIONS](Citations.md) for additional citations (UMAP, PHATE, Medicago HapMap).
+Additional citations can be found in [CITATIONS](Citations.md) (UMAP, PHATE, Medicago HapMap).
