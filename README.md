@@ -77,11 +77,16 @@ This generates the mds_coords.tsv that is used in the correlation comparison. Ad
 ## Future
 Currently the end-user is expected to save the outputs. But would be good to save it in a similar way to lostruct R-code. Please open an issue if you need this.
 
+## Feature Completeness with R implementation
+We are not yet feature complete with the R implementation. If something is needed please check for existing issues and comment about your need.
+
 ## PCA, MDS, PCoA
 PCoA returns the same results as lostruct's MDS implementation (cmdscale). In the example Jupyter notebook you can see the correlation is R =~ 0.998. Some examples of other methods of clustering / looking at differences are included in the notebook.
 
 ## Speed and Memory
 NUMBA and CyVCF2 are used for speeding up processes, and the software becomes multithreaded by default. The Sparse library is used to reduce memory requirements. parse_vcf function is multithreaded. Distance calculation is not.
+
+If you need to limit thread usage, please see [Numba's guide](https://numba.pydata.org/numba-doc/latest/user/threading-layer.html#setting-the-number-of-threads)
 
 ### Very Large Datasets
 The R implementation handles very large datasets in less memory. The problem arises with the PCoA function. A metric MDS using sklearn may work. Another alternative would be to export the data and run cmdscale in R directly.
