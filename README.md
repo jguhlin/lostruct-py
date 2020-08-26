@@ -88,6 +88,25 @@ The R implementation handles very large datasets in less memory. The problem ari
 
 The sklearn MDS function differs from the scikit-bio function.
 
+There are two options in python for this as well:
+```pcoa(method="fsvd", ...)```
+Which reduces memory and increases speed, at the cost of some accuracy.
+
+```pcoa(inplace=True, ...)```
+Centers a distance matrix in-place, further reducing memory requirements.
+
+```pcoa(number_of_dimensions=10)```
+Returns only the first 10 dimensions (configurable) of the scaling. This has no real effect if method is default or manuially set to "eigh" as the eigenvalues and eigenvectors are all calculated, so all are calculated and this becomes a truncation.
+
+Using all three techniques, correlation is maintained although the sign may change.
+```
+mds = pcoa(pc_dists, method="fsvd", inplace=True, number_of_dimensions=10)
+np.corrcoef(mds.samples["PC1"], mds_coords['MDS1'].to_numpy())[0][1]
+-0.9978147088087447
+```
+
+For more information please see the [applicable documentation](http://scikit-bio.org/docs/0.5.4/generated/generated/skbio.stats.ordination.pcoa.html) as well as the [relevant changelog](https://github.com/biocore/scikit-bio/blob/master/CHANGELOG.md#version-054-2018-08-23). A [Zenodo entry](https://zenodo.org/record/1404403) is also available on this topic.
+
 # References
 
 Please see [CITATIONS](Citations.md) for additional citations (UMAP, PHATE, Medicago HapMap).
