@@ -88,7 +88,6 @@ def parse_vcf(vcf_file, landmark, window_size, window_type=Window.SNP):
 
     return windows, positions
 
-@jit(nopython=False, parallel=True, forceobj=True)
 def cov_pca(snps,k,w=1):
     """
     Returns the covariance matrix, total variance, eigenvalues, eigenvectors for a given SNP window. Returns top k components.
