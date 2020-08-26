@@ -38,6 +38,7 @@ def test_l1_norm(benchmark):
 @pytest.mark.benchmark(
     group="PCoA",
     disable_gc=True,
+    min_rounds=50,
     warmup=True
 )
 def test_pcoa_default(benchmark):
@@ -52,6 +53,7 @@ def test_pcoa_default(benchmark):
 @pytest.mark.benchmark(
     group="PCoA",
     disable_gc=True,
+    min_rounds=50,
     warmup=True
 )
 def test_pcoa_fsvd_method(benchmark):
@@ -66,6 +68,7 @@ def test_pcoa_fsvd_method(benchmark):
 @pytest.mark.benchmark(
     group="Get PCs Dists",
     disable_gc=True,
+    min_rounds=50,
     warmup=True
 )
 def test_get_pcs_dists(benchmark):
@@ -79,6 +82,7 @@ def test_get_pcs_dists(benchmark):
 @pytest.mark.benchmark(
     group="Get PCs Dists",
     disable_gc=True,
+    min_rounds=50,
     warmup=True
 )
 def test_get_pcs_dists_fastmath(benchmark):
@@ -87,4 +91,4 @@ def test_get_pcs_dists_fastmath(benchmark):
     for x in take(20, windows):
         result.append(ls.eigen_windows(x, 10, 1))
     result = np.vstack(result)
-    dists = benchmark(ls.get_pc_dists, result, fastmath=True)
+    benchmark(ls.get_pc_dists, result, fastmath=True)

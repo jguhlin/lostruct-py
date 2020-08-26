@@ -130,8 +130,16 @@ class TestCalculations(unittest.TestCase):
         # Comes out as 0.9971509982243156
         self.assertTrue(np.corrcoef(mds.samples['PC1'], mds_coords)[0][1] >= 0.995)
 
+        # Compare with fastmath
         pc_dists = ls.get_pc_dists(result, fastmath=True)
         mds = skbio.stats.ordination.pcoa(pc_dists)
         # Comes out as 0.9971509982243156
         self.assertTrue(np.corrcoef(mds.samples['PC1'], mds_coords)[0][1] >= 0.995)
+
+        # Compare with fastmath and fsvd
+        pc_dists = ls.get_pc_dists(result, fastmath=True)
+        mds = skbio.stats.ordination.pcoa(pc_dists, method="fsvd", inplace=True, number_of_dimensions=10)
+        # Comes out as 0.9971509982243156
+        self.assertTrue(np.abs(np.corrcoef(mds.samples['PC1'], mds_coords)[0][1]) >= 0.995)
+
 

@@ -86,15 +86,21 @@ PCoA returns the same results as lostruct's MDS implementation (cmdscale). In th
 ## Speed and Memory
 NUMBA and CyVCF2 are used for speeding up processes, and the software becomes multithreaded by default. The Sparse library is used to reduce memory requirements. parse_vcf function is multithreaded. Distance calculation is not.
 
+### tl;dr of below
+Below two options are offered, fastmath for get_pc_dists function, and method="fsvd" for pcoa. When using both you will see a performance increase and memory requirement decrease. Accuracy should decrease, but the absolute correlation we see with our test dataset remains ~0.998. Be aware when using fsvd the sign of the correlation may change.
+
+### Fastmath
 Additionally, a mode implemented Numba's "fastmath" is available. For the function get_pc_dists() set fastmath=True. This results in a ~8% speed boost with very little change in the final output (correlation to R code output remains >= 0.995). This was benchmarked on the Medicago data used in the jupyter notebook using timeit, with 100 repeats with fastmath=False and Fastmath=True.
 ```get_pc_dists(result, fastmath=True)```
+
+The difference with fastmath=True and leaving it off can be seen [here](https://raw.githubusercontent.com/jguhlin/lostruct-py/master/benchmark_0.0.4-Get_PCs_Dists.svg). Note: Downloading the file will allow you to see more detailed information, as some javascript is contained in the SVG but disabled on GitHub.
 
 If you need to limit thread usage, please see [Numba's guide](https://numba.pydata.org/numba-doc/latest/user/threading-layer.html#setting-the-number-of-threads)
 
 ### Very Large Datasets
 The R implementation handles very large datasets in less memory. The problem arises with the PCoA function. A metric MDS using sklearn may work. Another alternative would be to export the data and run cmdscale in R directly.
 
-The sklearn MDS function differs from the scikit-bio function.
+The sklearn MDS function differs from the scikit-bio function, here we focus on the scikit-bio version.
 
 There are two options in python for this as well:
 ```pcoa(method="fsvd", ...)```
@@ -105,6 +111,8 @@ Centers a distance matrix in-place, further reducing memory requirements.
 
 ```pcoa(number_of_dimensions=10)```
 Returns only the first 10 dimensions (configurable) of the scaling. This has no real effect if method is default or manuially set to "eigh" as the eigenvalues and eigenvectors are all calculated, so all are calculated and this becomes a truncation.
+
+You can see the difference between method="fsvd" and method="eigh" (default) [here](https://raw.githubusercontent.com/jguhlin/lostruct-py/master/benchmark_0.0.4-PCoA.svg). These are tested with a minimum of 50 rounds. Note: Downloading the file will allow you to see more detailed information, as some javascript is contained in the SVG but disabled on GitHub.
 
 Using all three techniques, correlation is maintained although the sign may change.
 ```
