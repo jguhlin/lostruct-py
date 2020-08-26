@@ -1,3 +1,15 @@
+# Release 0.0.4
+* Split up get_pc_dists fn so numba can parallelize the majority of the work properly
+* Rename python package to lostruct
+* Add docstrings for most functions
+* Added notes for working with large datasets
+* Added more information to tutorial / jupyter notebook demonstration
+* Added argument support for SNPs by window or by base pair length -- Not yet implemented
+* Added support for weights - Not yet tested!
+
+# Release 0.0.3
+Minor typo fix for PyPi
+
 # Release 0.0.2
 * Drop pandas requirement, switch cov matrix to numpy masked array
 * Implement sparse matrix support to reduce memory requirements on very large datasets
