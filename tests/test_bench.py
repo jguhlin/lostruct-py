@@ -4,6 +4,7 @@ import sparse
 import numpy as np
 from itertools import islice
 from skbio.stats.ordination import pcoa
+import pytest
 
 # Benchmarks to prevent performance regressions...
 
@@ -18,9 +19,6 @@ vcf_file = "chr1-filtered.vcf.gz"
 def test_getgts(benchmark):
     record = next(ls.get_snps(vcf_file, "chr1"))
     benchmark(ls.get_gts, record)
-
-def test_parse_vcf(benchmark):
-    benchmark(ls.parse_vcf, vcf_file, "chr1", 99)
 
 error_tolerance = 0.00000001
 
@@ -37,14 +35,11 @@ def test_l1_norm(benchmark):
     _, _, eigenvals, _ = ls.eigen_windows(windows[0], 5, 1)
     benchmark(ls.l1_norm, eigenvals)
 
-def test_get_pcs_dists(benchmark):
-    windows, _ = ls.parse_vcf(vcf_file, "chr1", 99)
-    result = list()
-    for x in take(50, windows):
-        result.append(ls.eigen_windows(x, 10, 1))
-    result = np.vstack(result)
-    benchmark(ls.get_pc_dists, result)
-
+@pytest.mark.benchmark(
+    group="PCoA",
+    disable_gc=True,
+    warmup=True
+)
 def test_pcoa_default(benchmark):
     windows, _ = ls.parse_vcf(vcf_file, "chr1", 99)
     result = list()
@@ -54,6 +49,11 @@ def test_pcoa_default(benchmark):
     dists = ls.get_pc_dists(result)
     benchmark(pcoa, dists, number_of_dimensions=10)
 
+@pytest.mark.benchmark(
+    group="PCoA",
+    disable_gc=True,
+    warmup=True
+)
 def test_pcoa_fsvd_method(benchmark):
     windows, _ = ls.parse_vcf(vcf_file, "chr1", 99)
     result = list()
@@ -63,6 +63,24 @@ def test_pcoa_fsvd_method(benchmark):
     dists = ls.get_pc_dists(result)
     benchmark(pcoa, dists, method="fsvd", number_of_dimensions=10)
 
+@pytest.mark.benchmark(
+    group="Get PCs Dists",
+    disable_gc=True,
+    warmup=True
+)
+def test_get_pcs_dists(benchmark):
+    windows, _ = ls.parse_vcf(vcf_file, "chr1", 99)
+    result = list()
+    for x in take(50, windows):
+        result.append(ls.eigen_windows(x, 10, 1))
+    result = np.vstack(result)
+    benchmark(ls.get_pc_dists, result)
+
+@pytest.mark.benchmark(
+    group="Get PCs Dists",
+    disable_gc=True,
+    warmup=True
+)
 def test_get_pcs_dists_fastmath(benchmark):
     windows, _ = ls.parse_vcf(vcf_file, "chr1", 99)
     result = list()
