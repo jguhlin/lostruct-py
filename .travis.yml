@@ -8,5 +8,10 @@ install:
   - sudo apt-get install libcurl4-openssl-dev
   - pip install -r requirements.txt
   - pip install pytest-benchmark
+  - pip install codecov
+  - pip install pytest-cov
 script:
-  - py.test
+  - py.test --cov-report=xml --cov=lostruct-py tests/
+
+after_success:
+  - codecov
