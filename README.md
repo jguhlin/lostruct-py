@@ -4,7 +4,7 @@ This is a reimplementation of lostruct from the original code: [lostruct](https:
 by [Joseph Guhlin](https://github.com/jguhlin) with assistance by [Peter Ralph](https://github.com/petrelharp).
 
 [![Build Status](https://travis-ci.org/jguhlin/lostruct-py.svg?branch=master)](https://travis-ci.org/jguhlin/lostruct-py)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3997106.svg)](https://doi.org/10.5281/zenodo.3997106)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3997106.svg)](https://doi.org/10.5281/zenodo.3997106)[![codecov](https://codecov.io/gh/jguhlin/lostruct-py/branch/master/graph/badge.svg)](https://codecov.io/gh/jguhlin/lostruct-py)
 
 # Demonstration
 Please see the [Example Notebook](https://nbviewer.jupyter.org/github/jguhlin/lostruct-py/blob/master/Lostruct%20Example.ipynb)
