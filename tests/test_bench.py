@@ -14,7 +14,7 @@ def take(n, iterable):
     return list(islice(iterable, n))
 #...
 
-vcf_file = "chr1-filtered.vcf.gz"
+vcf_file = "test_data/chr1-filtered.vcf.gz"
 
 def test_getgts(benchmark):
     record = next(ls.get_snps(vcf_file, "chr1"))

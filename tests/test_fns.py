@@ -14,7 +14,7 @@ def take(n, iterable):
     return list(itertools.islice(iterable, n))
 #...
 
-vcf_file = "chr1-filtered.vcf.gz"
+vcf_file = "test_data/chr1-filtered.vcf.gz"
 
 class TestVcf(unittest.TestCase):
 

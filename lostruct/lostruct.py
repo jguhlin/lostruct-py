@@ -191,7 +191,7 @@ def calc_dists(n, vals, eigenvecs):
 # k = number of primary components
 # w = weight to apply
 # norm = normalization to apply (L1 or L2)
-def get_pc_dists(windows, fastmath=False):
+def get_pc_dists(windows, fastmath=False, w=1):
     """
     Calculate distances between window matrices.
 

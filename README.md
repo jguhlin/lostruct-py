@@ -80,6 +80,10 @@ Run 21 Aug 2020, using lostruct R git hash: 444b8c64bebdf7cdd0323e7735ccadddfc1c
 
 This generates the mds_coords.tsv that is used in the correlation comparison. Additionally, the existing tests cover correlation.
 
+To test the weight generation, a random sample of weights was created and used. Output was moved to `lostruct-results/weights_mds_coords.csv` and generated with the random_weights.txt found in `test_data/random_weights.txt`.
+
+```./run_lostruct.R -i data -t snp -s 95 -k 10 -m 10 -w random_weights.txt```
+
 # FAQ / Notes
 
 ## Future
