@@ -11,7 +11,8 @@ install:
   - pip install codecov
   - pip install pytest-cov
 script:
-  - python -m pytest --cov-report=xml --cov=lostruct tests/
+  - python -m pytest --cov-report=xml --cov=tests tests/
+  #- python -m pytest --cov-report=xml --cov=lostruct tests/
 
 after_success:
   - codecov
