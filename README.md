@@ -137,3 +137,7 @@ For more information please see the [applicable documentation](http://scikit-bio
 # References
 
 Additional citations can be found in [CITATIONS](Citations.md) (UMAP, PHATE, Medicago HapMap).
+
+# Miscellaneous Notes
+
+We are using the code formatter[BLACK](https://github.com/psf/black). Also, code coverage is actually 100% but numba JIT'd code is not properly counted. As long as all tests complete everything is working.
