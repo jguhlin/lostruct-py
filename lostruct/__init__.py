@@ -1,1 +1,15 @@
-from .lostruct import get_landmarks, get_samples, partition_all, get_snps, get_gts, parse_vcf, cov_pca, eigen_windows, l1_norm, get_pc_dists, dist_sq_from_pcs
+"""Python implementation of Lostruct, which calculates local population structure of a genome"""
+
+from .lostruct import (
+    cov_pca,
+    dist_sq_from_pcs,
+    eigen_windows,
+    get_gts,
+    get_landmarks,
+    get_pc_dists,
+    get_samples,
+    get_snps,
+    l1_norm,
+    parse_vcf,
+    partition_all,
+)
