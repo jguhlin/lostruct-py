@@ -5,8 +5,9 @@ python:
   - "3.7"
   - "3.8"
   - "3.9-dev"
+  - "3.9"
 install:
-  - sudo apt-get install libcurl4-openssl-dev libblas-dev liblapack-dev g77
+  - sudo apt-get install libcurl4-openssl-dev libblas-dev liblapack-dev
   - python -m pip install --upgrade pip
   - pip install numpy
   - pip install -r requirements.txt
