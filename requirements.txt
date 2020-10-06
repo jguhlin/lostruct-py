@@ -12,7 +12,6 @@ cyvcf2==0.20.4
 decorator==4.4.2
 distlib==0.3.1
 filelock==3.0.12
-hdmedians==0.13
 humanfriendly==8.2
 idna==2.10
 iniconfig==1.0.1
