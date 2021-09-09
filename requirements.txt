@@ -31,12 +31,9 @@ pandas==1.1.1
 parso==0.7.1
 pexpect==4.8.0
 pickleshare==0.7.5
-Pillow==7.2.0
 pluggy==0.13.1
 prompt-toolkit==3.0.6
 ptyprocess==0.6.0
-py==1.9.0
-Pygments==2.6.1
 pyparsing==2.4.7
 pytest==6.0.1
 python-dateutil==2.8.1
@@ -48,9 +45,6 @@ scipy==1.5.2
 six==1.15.0
 sparse==0.11.0
 threadpoolctl==2.1.0
-toml==0.10.1
-tox==3.19.0
 traitlets==4.3.3
-urllib3==1.25.10
 virtualenv==20.0.31
 wcwidth==0.2.5
