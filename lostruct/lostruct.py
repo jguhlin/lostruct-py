@@ -7,7 +7,11 @@ import numpy as np
 import sparse
 from cyvcf2 import VCF
 from numba import jit
+import jax.numpy as jnp
+import jax
 
+from jax.config import config; 
+config.update("jax_enable_x64", True)
 
 class Window(Enum):
     """Species whether to treat window sizes as per-SNP or per-BP... Currently not implemented"""
@@ -169,6 +173,17 @@ def l1_norm(eigenvals):
     norm = np.linalg.norm(z, ord=1, axis=1, keepdims=True)
     return z / norm
 
+@jax.jit
+def l1_norm_jax(eigenvals):
+    """
+    Applies l1 norm to a set of eigenvalues using JAX
+    """
+    z = jnp.vstack(eigenvals)
+    # Because of the norm fn below, we can't use numba
+    # Possible to redo the data, but not sure the benefit would be worth it
+    norm = jnp.linalg.norm(z, ord=1, axis=1, keepdims=True)
+    return z / norm
+
 
 @jit(nopython=True, parallel=True, fastmath=True)
 def calc_dists_fastmath(n, vals, eigenvecs):
@@ -221,7 +236,7 @@ def calc_dists(n, vals, eigenvecs):
 # k = number of primary components
 # w = weight to apply
 # norm = normalization to apply (L1 or L2)
-def get_pc_dists(windows, fastmath=False, w=1):
+def get_pc_dists(windows, fastmath=False, jax=False, w=1):
     """
     Calculate distances between window matrices.
 
@@ -229,19 +244,30 @@ def get_pc_dists(windows, fastmath=False, w=1):
     half as well.
     """
     n = len(windows)
-    vals = l1_norm(np.asarray([x[2] for x in windows]))
-    vals = vals.real.astype(np.float64)
-
-    if fastmath:
-        comparison = calc_dists_fastmath(n, vals, np.asarray([x[3] for x in windows]))
-    else:
-        comparison = calc_dists(n, vals, np.asarray([x[3] for x in windows]))
 
     # Remove negatives... Can't be placed within Numba code
-    comparison[comparison < 0] = 0
-
     # Get square root
-    return np.sqrt(comparison)
+
+    if fastmath:
+        vals = l1_norm(np.asarray([x[2] for x in windows]))
+        vals = vals.real.astype(np.float64)
+        comparison = calc_dists_fastmath(n, vals, np.asarray([x[3] for x in windows]))
+        comparison[comparison < 0] = 0
+        return np.sqrt(comparison)
+    elif jax:
+        vals = l1_norm_jax(jnp.asarray([x[2] for x in windows]))
+        comparison = calc_dists_jax(vals, jnp.asarray([x[3] for x in windows]))
+        # comparison.at[jnp.where(comparison < 0)] = 0
+        print(comparison)
+        comparison = jnp.where(comparison > 0, comparison, 0)
+        print(jnp.sqrt(comparison))
+        return jnp.sqrt(comparison)
+    else:
+        vals = l1_norm(np.asarray([x[2] for x in windows]))
+        vals = vals.real.astype(np.float64)
+        comparison = calc_dists(n, vals, np.asarray([x[3] for x in windows]))
+        comparison[comparison < 0] = 0
+        return np.sqrt(comparison)   
 
 
 @jit(nopython=True, parallel=True, fastmath=True)
@@ -267,4 +293,39 @@ def dist_sq_from_pcs(v1, v2, xvec, yvec):
         np.square(v1).sum()
         + np.square(v2).sum()
         - 2 * np.sum(v1 * np.sum(Xt * (v2 * Xt), axis=1))
+    )
+
+@jax.jit
+def calc_dists_jax(vals, eigenvecs):
+    """
+    Calculate the distances of windows given a set of eigenvectors and normalized
+    eigenvalues. Called from get_pc_dist(..., jax=True) function.
+    """
+    comparison = jnp.zeros((vals.shape[0], vals.shape[0]), dtype=jnp.float64)
+
+    upper_triangle = jnp.triu_indices(vals.shape[0], k=1)
+
+    upper_triangle_vals = jnp.stack((jnp.take(vals, upper_triangle[0], axis=0),
+            jnp.take(vals, upper_triangle[1], axis=0)), axis=1)
+
+    upper_triangle_eigenvecs = jnp.stack((jnp.take(eigenvecs, upper_triangle[0], axis=0),
+            jnp.take(eigenvecs, upper_triangle[1], axis=0)), axis=1)
+
+    pfn = jax.vmap(lambda vs, evs: dist_sq_from_pcs_jax(vs[0], vs[1], evs[0], evs[1]))
+    comparison_out = pfn(upper_triangle_vals, upper_triangle_eigenvecs)
+    comparison = comparison.at[jnp.triu_indices(vals.shape[0], k=1)].set(comparison_out)
+
+    # Make symmetric
+    return comparison + comparison.T
+
+@jax.jit
+def dist_sq_from_pcs_jax(v1, v2, xvec, yvec):
+    """
+    Given two matrices, calculates the distance between them.
+    """
+    Xt = jnp.dot(xvec, yvec.T)
+    return (
+        jnp.square(v1).sum()
+        + jnp.square(v2).sum()
+        - 2 * jnp.sum(v1 * jnp.sum(Xt * (v2 * Xt), axis=1))
     )

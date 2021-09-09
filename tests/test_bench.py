@@ -89,3 +89,14 @@ def test_get_pcs_dists_fastmath(benchmark):
         result.append(ls.eigen_windows(x, 10, 1))
     result = np.vstack(result)
     benchmark(ls.get_pc_dists, result, fastmath=True)
+
+@pytest.mark.benchmark(
+    group="Get PCs Dists", disable_gc=True, min_rounds=50, warmup=True
+)
+def test_get_pcs_dists_jax(benchmark):
+    windows, _ = ls.parse_vcf(vcf_file, "chr1", 99)
+    result = list()
+    for x in take(20, windows):
+        result.append(ls.eigen_windows(x, 10, 1))
+    result = np.vstack(result)
+    benchmark(ls.get_pc_dists, result, jax=True)
