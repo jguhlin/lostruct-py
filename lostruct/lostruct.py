@@ -308,7 +308,7 @@ def calc_dists_jax(vals, eigenvecs):
     """
     comparison = jnp.zeros((vals.shape[0], vals.shape[0]), dtype=jnp.float64)
 
-    upper_triangle = jnp.triu_indices(vals.shape[0], k=1)
+    upper_triangle = jnp.triu_indices_from(comparison, k=1)
     # upper_triangle = jnp.stack(upper_triangle, axis=1)
 
     upper_triangle_vals = jnp.stack(
@@ -345,7 +345,7 @@ def calc_dists_jax(vals, eigenvecs):
 
     pfn = jax.vmap(lambda vs, evs: dist_sq_from_pcs_jax(vs[0], vs[1], evs[0], evs[1]))
     comparison_out = pfn(upper_triangle_vals, upper_triangle_eigenvecs)
-    comparison = comparison.at[jnp.triu_indices(vals.shape[0], k=1)].set(comparison_out)
+    comparison = comparison.at[jnp.triu_indices_from(comparison, k=1)].set(comparison_out)
 
     # Make symmetric
     return comparison + comparison.T
