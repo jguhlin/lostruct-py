@@ -140,7 +140,6 @@ class TestCalculations(unittest.TestCase):
             pc_dists[0][3], 0.30474948474286145, delta=self.error_tolerance
         )
 
-
     def test_compare_to_rcode(self):
         windows, _ = ls.parse_vcf(vcf_file, "chr1", 95)
         covmat, total_variance, eigenvals, eigenvecs = ls.cov_pca(

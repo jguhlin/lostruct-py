@@ -15,8 +15,10 @@ from jax import pmap, vmap
 
 config.update("jax_enable_x64", True)
 
+
 class Window(Enum):
     """Species whether to treat window sizes as per-SNP or per-BP... Currently not implemented"""
+
     SNP = 1
     BP = 2
 
@@ -164,6 +166,7 @@ def eigen_windows(snps, k, w):
     return cov_pca(snps.todense(), k, w)
 
 
+# @jit(parallel=True)
 def l1_norm(eigenvals):
     """
     Applies l1 norm to a set of eigenvalues.
@@ -173,6 +176,7 @@ def l1_norm(eigenvals):
     # Possible to redo the data, but not sure the benefit would be worth it
     norm = np.linalg.norm(z, ord=1, axis=1, keepdims=True)
     return z / norm
+
 
 @jax.jit
 def l1_norm_jax(eigenvals):
@@ -187,15 +191,18 @@ def l1_norm_jax(eigenvals):
 
 
 @jit(nopython=True, parallel=True, fastmath=True)
-def calc_dists_fastmath(n, vals, eigenvecs):
+def calc_dists_fastmath(vals, eigenvecs):
     """
     Calculate the distances of windows given a set of eigenvectors and normalized
     eigenvalues. Called from get_pc_dist() function.
 
     This is separated out to take advantage of Numba optimizations.
     """
-    comparison = np.zeros((n, n), dtype=np.float64)
-    upper_triangle = zip(*np.triu_indices(n, k=1))
+    #comparison = np.zeros((n, n), dtype=np.float64)
+    #upper_triangle = zip(*np.triu_indices(n, k=1))
+
+    comparison = np.zeros((vals.shape[0], vals.shape[0]), dtype=np.float64)
+    upper_triangle = np.stack(np.triu_indices_from(comparison, k=1), axis=1)
 
     vals = vals.real.astype(np.float64)
 
@@ -211,19 +218,21 @@ def calc_dists_fastmath(n, vals, eigenvecs):
 
 
 @jit(nopython=True, parallel=True)
-def calc_dists(n, vals, eigenvecs):
+def calc_dists(vals, eigenvecs):
     """
     Calculate the distances of windows given a set of eigenvectors and normalized
     eigenvalues. Called from get_pc_dist() function.
 
     This is separated out to take advantage of Numba optimizations.
     """
-    comparison = np.zeros((n, n), dtype=np.float64)
-    upper_triangle = zip(*np.triu_indices(n, k=1))
+    #comparison = np.zeros((n, n), dtype=np.float64)
+    comparison = np.zeros((vals.shape[0], vals.shape[0]), dtype=np.float64)
+    #upper_triangle = zip(*np.triu_indices(n, k=1))
+    upper_triangle = np.stack(np.triu_indices_from(comparison, k=1), axis=1)
 
     vals = vals.real.astype(np.float64)
 
-    for i, j in upper_triangle:
+    for i,j in upper_triangle:
         comparison[i, j] = dist_sq_from_pcs(
             vals[i], vals[j], eigenvecs[i], eigenvecs[j]
         )
@@ -244,28 +253,25 @@ def get_pc_dists(windows, fastmath=False, jax=False, w=1):
     Works on only the upper triangle of the matrix, but clones the data into the lower
     half as well.
     """
-    n = len(windows)
+    #n = len(windows)
 
     # Remove negatives... Can't be placed within Numba code
     # Get square root
 
     if fastmath:
-        vals = l1_norm(np.asarray([x[2] for x in windows]))
+        vals = np.asarray(l1_norm_jax(np.asarray([x[2] for x in windows])))
         vals = vals.real.astype(np.float64)
-        comparison = calc_dists_fastmath(n, vals, np.asarray([x[3] for x in windows]))
-        comparison[comparison < 0] = 0
-        return np.sqrt(comparison)
+        comparison = calc_dists_fastmath(vals, np.asarray([x[3] for x in windows]))
+        return np.sqrt(np.where(comparison > 0, comparison, 0))
     elif jax:
         vals = l1_norm_jax(jnp.asarray([x[2] for x in windows]))
         comparison = calc_dists_jax(vals, jnp.asarray([x[3] for x in windows]))
-        comparison = jnp.where(comparison > 0, comparison, 0)
-        return jnp.sqrt(comparison)
+        return jnp.sqrt(jnp.where(comparison > 0, comparison, 0))
     else:
         vals = l1_norm(np.asarray([x[2] for x in windows]))
         vals = vals.real.astype(np.float64)
-        comparison = calc_dists(n, vals, np.asarray([x[3] for x in windows]))
-        comparison[comparison < 0] = 0
-        return np.sqrt(comparison)
+        comparison = calc_dists(vals, np.asarray([x[3] for x in windows]))
+        return np.sqrt(np.where(comparison > 0, comparison, 0))
 
 
 @jit(nopython=True, parallel=True, fastmath=True)
@@ -293,6 +299,7 @@ def dist_sq_from_pcs(v1, v2, xvec, yvec):
         - 2 * np.sum(v1 * np.sum(Xt * (v2 * Xt), axis=1))
     )
 
+
 # @jax.jit
 def calc_dists_jax(vals, eigenvecs):
     """
@@ -304,25 +311,35 @@ def calc_dists_jax(vals, eigenvecs):
     upper_triangle = jnp.triu_indices(vals.shape[0], k=1)
     # upper_triangle = jnp.stack(upper_triangle, axis=1)
 
-    upper_triangle_vals = jnp.stack((jnp.take(vals, upper_triangle[0], axis=0),
-            jnp.take(vals, upper_triangle[1], axis=0)), axis=1)
+    upper_triangle_vals = jnp.stack(
+        (
+            jnp.take(vals, upper_triangle[0], axis=0),
+            jnp.take(vals, upper_triangle[1], axis=0),
+        ),
+        axis=1,
+    )
 
-    upper_triangle_eigenvecs = jnp.stack((jnp.take(eigenvecs, upper_triangle[0], axis=0),
-            jnp.take(eigenvecs, upper_triangle[1], axis=0)), axis=1)
+    upper_triangle_eigenvecs = jnp.stack(
+        (
+            jnp.take(eigenvecs, upper_triangle[0], axis=0),
+            jnp.take(eigenvecs, upper_triangle[1], axis=0),
+        ),
+        axis=1,
+    )
 
-#    upper_triangle = jnp.stack((upper_triangle_vals, upper_triangle_eigenvecs), axis=1)
+    #    upper_triangle = jnp.stack((upper_triangle_vals, upper_triangle_eigenvecs), axis=1)
 
-#    def do_calc(i, j):
-#        return dist_sq_from_pcs_jax(vals[i], vals[j], eigenvecs[i], eigenvecs[j])
+    #    def do_calc(i, j):
+    #        return dist_sq_from_pcs_jax(vals[i], vals[j], eigenvecs[i], eigenvecs[j])
 
-#    with Pool() as pool:
-#        comparison_out = pool.starmap(lambda vs, evs: dist_sq_from_pcs_jax(vs[0], vs[1], evs[0], evs[1]), upper_triangle_vals, upper_triangle_eigenvecs)
-#        comparison_out = pool.map(do_calc, upper_triangle)
+    #    with Pool() as pool:
+    #        comparison_out = pool.starmap(lambda vs, evs: dist_sq_from_pcs_jax(vs[0], vs[1], evs[0], evs[1]), upper_triangle_vals, upper_triangle_eigenvecs)
+    #        comparison_out = pool.map(do_calc, upper_triangle)
 
-#    for i, j in upper_triangle:
-#        comparison = comparison.at[i, j].set(dist_sq_from_pcs_jax(
-#            vals[i], vals[j], eigenvecs[i], eigenvecs[j]
-#        ))
+    #    for i, j in upper_triangle:
+    #        comparison = comparison.at[i, j].set(dist_sq_from_pcs_jax(
+    #            vals[i], vals[j], eigenvecs[i], eigenvecs[j]
+    #        ))
 
     print("Got here!")
 
@@ -332,6 +349,7 @@ def calc_dists_jax(vals, eigenvecs):
 
     # Make symmetric
     return comparison + comparison.T
+
 
 @jax.jit
 def dist_sq_from_pcs_jax(v1, v2, xvec, yvec):
