@@ -10,12 +10,12 @@ from numba import jit
 import jax.numpy as jnp
 import jax
 
-from jax.config import config; 
+from jax.config import config
+from jax import pmap, vmap
 config.update("jax_enable_x64", True)
 
 class Window(Enum):
     """Species whether to treat window sizes as per-SNP or per-BP... Currently not implemented"""
-
     SNP = 1
     BP = 2
 
@@ -257,17 +257,14 @@ def get_pc_dists(windows, fastmath=False, jax=False, w=1):
     elif jax:
         vals = l1_norm_jax(jnp.asarray([x[2] for x in windows]))
         comparison = calc_dists_jax(vals, jnp.asarray([x[3] for x in windows]))
-        # comparison.at[jnp.where(comparison < 0)] = 0
-        print(comparison)
         comparison = jnp.where(comparison > 0, comparison, 0)
-        print(jnp.sqrt(comparison))
         return jnp.sqrt(comparison)
     else:
         vals = l1_norm(np.asarray([x[2] for x in windows]))
         vals = vals.real.astype(np.float64)
         comparison = calc_dists(n, vals, np.asarray([x[3] for x in windows]))
         comparison[comparison < 0] = 0
-        return np.sqrt(comparison)   
+        return np.sqrt(comparison)
 
 
 @jit(nopython=True, parallel=True, fastmath=True)
@@ -304,16 +301,22 @@ def calc_dists_jax(vals, eigenvecs):
     comparison = jnp.zeros((vals.shape[0], vals.shape[0]), dtype=jnp.float64)
 
     upper_triangle = jnp.triu_indices(vals.shape[0], k=1)
+    upper_triangle = jnp.stack(upper_triangle, axis=1)
 
-    upper_triangle_vals = jnp.stack((jnp.take(vals, upper_triangle[0], axis=0),
-            jnp.take(vals, upper_triangle[1], axis=0)), axis=1)
+#    upper_triangle_vals = jnp.stack((jnp.take(vals, upper_triangle[0], axis=0),
+#            jnp.take(vals, upper_triangle[1], axis=0)), axis=1)
 
-    upper_triangle_eigenvecs = jnp.stack((jnp.take(eigenvecs, upper_triangle[0], axis=0),
-            jnp.take(eigenvecs, upper_triangle[1], axis=0)), axis=1)
+#    upper_triangle_eigenvecs = jnp.stack((jnp.take(eigenvecs, upper_triangle[0], axis=0),
+#            jnp.take(eigenvecs, upper_triangle[1], axis=0)), axis=1)
 
-    pfn = jax.vmap(lambda vs, evs: dist_sq_from_pcs_jax(vs[0], vs[1], evs[0], evs[1]))
-    comparison_out = pfn(upper_triangle_vals, upper_triangle_eigenvecs)
-    comparison = comparison.at[jnp.triu_indices(vals.shape[0], k=1)].set(comparison_out)
+    for i, j in upper_triangle:
+        comparison = comparison.at[i, j].set(dist_sq_from_pcs_jax(
+            vals[i], vals[j], eigenvecs[i], eigenvecs[j]
+        ))
+
+#    pfn = jax.vmap(lambda vs, evs: dist_sq_from_pcs_jax(vs[0], vs[1], evs[0], evs[1]))
+#    comparison_out = pfn(upper_triangle_vals, upper_triangle_eigenvecs)
+#    comparison = comparison.at[jnp.triu_indices(vals.shape[0], k=1)].set(comparison_out)
 
     # Make symmetric
     return comparison + comparison.T
