@@ -9,9 +9,10 @@ from cyvcf2 import VCF
 from numba import jit
 import jax.numpy as jnp
 import jax
-
+from multiprocessing import Pool
 from jax.config import config
 from jax import pmap, vmap
+
 config.update("jax_enable_x64", True)
 
 class Window(Enum):
@@ -292,7 +293,7 @@ def dist_sq_from_pcs(v1, v2, xvec, yvec):
         - 2 * np.sum(v1 * np.sum(Xt * (v2 * Xt), axis=1))
     )
 
-@jax.jit
+# @jax.jit
 def calc_dists_jax(vals, eigenvecs):
     """
     Calculate the distances of windows given a set of eigenvectors and normalized
@@ -301,22 +302,33 @@ def calc_dists_jax(vals, eigenvecs):
     comparison = jnp.zeros((vals.shape[0], vals.shape[0]), dtype=jnp.float64)
 
     upper_triangle = jnp.triu_indices(vals.shape[0], k=1)
-    upper_triangle = jnp.stack(upper_triangle, axis=1)
+    # upper_triangle = jnp.stack(upper_triangle, axis=1)
 
-#    upper_triangle_vals = jnp.stack((jnp.take(vals, upper_triangle[0], axis=0),
-#            jnp.take(vals, upper_triangle[1], axis=0)), axis=1)
+    upper_triangle_vals = jnp.stack((jnp.take(vals, upper_triangle[0], axis=0),
+            jnp.take(vals, upper_triangle[1], axis=0)), axis=1)
 
-#    upper_triangle_eigenvecs = jnp.stack((jnp.take(eigenvecs, upper_triangle[0], axis=0),
-#            jnp.take(eigenvecs, upper_triangle[1], axis=0)), axis=1)
+    upper_triangle_eigenvecs = jnp.stack((jnp.take(eigenvecs, upper_triangle[0], axis=0),
+            jnp.take(eigenvecs, upper_triangle[1], axis=0)), axis=1)
 
-    for i, j in upper_triangle:
-        comparison = comparison.at[i, j].set(dist_sq_from_pcs_jax(
-            vals[i], vals[j], eigenvecs[i], eigenvecs[j]
-        ))
+#    upper_triangle = jnp.stack((upper_triangle_vals, upper_triangle_eigenvecs), axis=1)
 
-#    pfn = jax.vmap(lambda vs, evs: dist_sq_from_pcs_jax(vs[0], vs[1], evs[0], evs[1]))
-#    comparison_out = pfn(upper_triangle_vals, upper_triangle_eigenvecs)
-#    comparison = comparison.at[jnp.triu_indices(vals.shape[0], k=1)].set(comparison_out)
+#    def do_calc(i, j):
+#        return dist_sq_from_pcs_jax(vals[i], vals[j], eigenvecs[i], eigenvecs[j])
+
+#    with Pool() as pool:
+#        comparison_out = pool.starmap(lambda vs, evs: dist_sq_from_pcs_jax(vs[0], vs[1], evs[0], evs[1]), upper_triangle_vals, upper_triangle_eigenvecs)
+#        comparison_out = pool.map(do_calc, upper_triangle)
+
+#    for i, j in upper_triangle:
+#        comparison = comparison.at[i, j].set(dist_sq_from_pcs_jax(
+#            vals[i], vals[j], eigenvecs[i], eigenvecs[j]
+#        ))
+
+    print("Got here!")
+
+    pfn = jax.vmap(lambda vs, evs: dist_sq_from_pcs_jax(vs[0], vs[1], evs[0], evs[1]))
+    comparison_out = pfn(upper_triangle_vals, upper_triangle_eigenvecs)
+    comparison = comparison.at[jnp.triu_indices(vals.shape[0], k=1)].set(comparison_out)
 
     # Make symmetric
     return comparison + comparison.T
