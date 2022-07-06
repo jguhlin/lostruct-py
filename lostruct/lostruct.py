@@ -3,18 +3,24 @@
 from enum import Enum
 from itertools import islice
 
+from enclosing_circle import *
+
 import numpy as np
 import sparse
 from cyvcf2 import VCF
 from numba import jit
-import jax.numpy as jnp
-import jax
 from multiprocessing import Pool
-from jax.config import config
-from jax import pmap, vmap
 
-config.update("jax_enable_x64", True)
-
+try:
+    import jax.numpy as jnp
+    import jax
+    from jax.config import config
+    from jax import pmap, vmap
+    config.update("jax_enable_x64", True)
+except ImportError:
+    _has_jax = False
+else:
+    _has_jax = True
 
 class Window(Enum):
     """Species whether to treat window sizes as per-SNP or per-BP... Currently not implemented"""
@@ -183,6 +189,10 @@ def l1_norm_jax(eigenvals):
     """
     Applies l1 norm to a set of eigenvalues using JAX
     """
+
+    if not _has_jax:
+        raise ImportError("JAX is not installed. Please install JAX to use this function.")
+
     z = jnp.vstack(eigenvals)
     # Because of the norm fn below, we can't use numba
     # Possible to redo the data, but not sure the benefit would be worth it
@@ -258,15 +268,17 @@ def get_pc_dists(windows, fastmath=False, jax=False, w=1):
     # Remove negatives... Can't be placed within Numba code
     # Get square root
 
-    if fastmath:
-        vals = np.asarray(l1_norm_jax(np.asarray([x[2] for x in windows])))
-        vals = vals.real.astype(np.float64)
-        comparison = calc_dists_fastmath(vals, np.asarray([x[3] for x in windows]))
-        return np.sqrt(np.where(comparison > 0, comparison, 0))
+    if fastmath and jax:
+        raise ValueError("Cannot use fastmath and jax at the same time. JAX outperforms fastmath but has limited cross-platform support.")
     elif jax:
         vals = l1_norm_jax(jnp.asarray([x[2] for x in windows]))
         comparison = calc_dists_jax(vals, jnp.asarray([x[3] for x in windows]))
         return jnp.sqrt(jnp.where(comparison > 0, comparison, 0))
+    if fastmath:
+        vals = np.asarray(l1_norm(np.asarray([x[2] for x in windows])))
+        vals = vals.real.astype(np.float64)
+        comparison = calc_dists_fastmath(vals, np.asarray([x[3] for x in windows]))
+        return np.sqrt(np.where(comparison > 0, comparison, 0))
     else:
         vals = l1_norm(np.asarray([x[2] for x in windows]))
         vals = vals.real.astype(np.float64)
@@ -306,6 +318,9 @@ def calc_dists_jax(vals, eigenvecs):
     Calculate the distances of windows given a set of eigenvectors and normalized
     eigenvalues. Called from get_pc_dist(..., jax=True) function.
     """
+    if not _has_jax:
+        raise ImportError("JAX is not installed. Please install JAX to use this function.")
+
     comparison = jnp.zeros((vals.shape[0], vals.shape[0]), dtype=jnp.float64)
 
     upper_triangle = jnp.triu_indices_from(comparison, k=1)
@@ -356,9 +371,30 @@ def dist_sq_from_pcs_jax(v1, v2, xvec, yvec):
     """
     Given two matrices, calculates the distance between them.
     """
+    if not _has_jax:
+        raise ImportError("JAX is not installed. Please install JAX to use this function.")
+
     Xt = jnp.dot(xvec, yvec.T)
     return (
         jnp.square(v1).sum()
         + jnp.square(v2).sum()
         - 2 * jnp.sum(v1 * jnp.sum(Xt * (v2 * Xt), axis=1))
     )
+
+import numpy as np
+from scipy.spatial import distance
+
+def corners(xy, prop, k=3):
+    ctr_x, ctr_y, rad = make_circle(xy)
+    ctr = np.array([ctr_x, ctr_y])[np.newaxis]
+
+    # find 3 points that have the max distance from center
+    dst2ctr = distance.cdist(xy, ctr, 'euclidean').flatten()
+    cidx = dst2ctr.argsort()[-3:]
+
+    dpt = lambda uv: ((xy[:,0] - uv[0])**2 + (xy[:,1] - uv[1])**2)**.5
+    closest = lambda u: np.where(u <= np.nanquantile(u, q=prop))[0]
+    dists = [dpt(xy[i,:]) for i in cidx]
+    out = np.stack([closest(z) for z in dists], axis=1)
+
+    return out

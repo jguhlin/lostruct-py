@@ -17,5 +17,3 @@ McInnes, L, Healy, J, UMAP: Uniform Manifold Approximation and Projection for Di
 
 # PHATE
 Moon, van Dijk, Wang, Gigante et al. **Visualizing Transitions and Structure for Biological Data Exploration**. 2019. *Nature Biotechnology*.
-
-# I'm probably missing some...

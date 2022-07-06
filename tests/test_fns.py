@@ -15,7 +15,6 @@ def take(n, iterable):
     "Return first n items of the iterable as a list"
     return list(itertools.islice(iterable, n))
 
-
 # ...
 
 vcf_file = "test_data/chr1-filtered.vcf.gz"
@@ -98,6 +97,11 @@ class TestCalculations(unittest.TestCase):
         windows, _ = ls.parse_vcf(vcf_file, "chr1", 99)
         _, _, eigenvals, _ = ls.eigen_windows(windows[0], 5, 1)
         self.assertEqual(np.sum(ls.l1_norm(eigenvals)), 5.0)
+
+    def test_l1_norm_jax(self):
+        windows, _ = ls.parse_vcf(vcf_file, "chr1", 99)
+        _, _, eigenvals, _ = ls.eigen_windows(windows[0], 5, 1)
+        self.assertEqual(np.sum(ls.l1_norm_jax(eigenvals)), 5.0)
 
     # Many of these tests are redundant, so this one won't be...
     # It also tests dist_sq_from_pcs so we won't test that separately...

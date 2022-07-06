@@ -3,7 +3,7 @@
 This is a reimplementation of lostruct from the original code: [lostruct](https://github.com/petrelharp/local_pca),
 by [Joseph Guhlin](https://github.com/jguhlin) with assistance by [Peter Ralph](https://github.com/petrelharp).
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3997106.svg)](https://doi.org/10.5281/zenodo.3997106) [![Build Status](https://travis-ci.com/jguhlin/lostruct-py.svg?branch=master)](https://travis-ci.com/jguhlin/lostruct-py) [![codecov](https://codecov.io/gh/jguhlin/lostruct-py/branch/master/graph/badge.svg)](https://codecov.io/gh/jguhlin/lostruct-py)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3997106.svg)](https://doi.org/10.5281/zenodo.3997106) [![Build Status](https://app.travis-ci.com/jguhlin/lostruct-py.svg?branch=master)](https://app.travis-ci.com/jguhlin/lostruct-py) [![codecov](https://codecov.io/gh/jguhlin/lostruct-py/branch/master/graph/badge.svg)](https://codecov.io/gh/jguhlin/lostruct-py)
 
 # Demonstration
 Please see the [Example Notebook](https://nbviewer.jupyter.org/github/jguhlin/lostruct-py/blob/master/Lostruct%20Example.ipynb)
@@ -47,6 +47,10 @@ These may be installed with `conda` or `pip`, e.g. by running `pip install -r re
 # Changes
 See [CHANGES.MD](CHANGES.md) for the full list.
 
+## 0.0.5
+* JAX
+* Smallest circle
+
 ## 0.0.4
 * Package name changed to lostruct
 * Parallelization of get_pc_dists
@@ -54,17 +58,29 @@ See [CHANGES.MD](CHANGES.md) for the full list.
 
 # Tests
 
-Tests were derived from [Medicago HapMap data](http://www.medicagohapmap.org/downloads/Mt40/Mt4.0_HapMap_README.pdf). While the software had high correlation with lostruct R the values were determined. If values begin to deviate from the method these tests will now fail.
+Tests were derived from the [Medicago HapMap data](http://www.medicagohapmap.org/downloads/Mt40/Mt4.0_HapMap_README.pdf). The python package and the R package have high correlation of values. If values begin to deviate, theese tests will now fail.
 
 To run tests simply do:
 ```
-python -m nose
+pip install pytest
+pytest
 ```
+The tests furthermore require `unittest` and `scikit-bio` (and `pytest` to run them this way).
 
-The tests furthermore require `unittest` and `scikit-bio` (and, `nose` to run them this way).
+## Benchmarks
+To run tests with benchmarks, install the following:
+```
+pip install pytest-benchmark
+```
 
 ## TOX
 Tox allows you run tests with multiple versions of the python interpreter in venvs. It is best to use pyenv to install multiple versions python to run before submitting pull requests to be certain tests complete successfully across all versions.
+
+To run tests via tox:
+```
+pip install tox
+
+```
 
 # Correlation Data
 To test correlation of results between the R and Python versions we used data from the Medicago HapMap project, specifically SNPs for sister taxa chromsome 1, processed, and run with LoStruct R.
@@ -100,8 +116,11 @@ NUMBA and CyVCF2 are used for speeding up processes, and the software becomes mu
 ### tl;dr of below
 Below two options are offered, fastmath for get_pc_dists function, and method="fsvd" for pcoa. When using both you will see a performance increase and memory requirement decrease. Accuracy should decrease, but the absolute correlation we see with our test dataset remains ~0.998. Be aware when using fsvd the sign of the correlation may change.
 
+### JAX
+Jax is an open-source library.... optional support in lostruct. Allows for processing on GPU and TPU (untested here, so far). See [JAX](https://jax.readthedocs.io/en/latest/). You can enable it in the function get_pc_dists by setting jax=True. This results in XX% speedup. Fastmath (below) and JAX are both supported, although JAX outperforms fastmath.
+
 ### Fastmath
-Additionally, a mode implemented Numba's "fastmath" is available. For the function get_pc_dists() set fastmath=True. This results in a ~8% speed boost with very little change in the final output (correlation to R code output remains >= 0.995). This was benchmarked on the Medicago data used in the jupyter notebook using timeit, with 100 repeats with fastmath=False and Fastmath=True.
+Additionally, a mode implemented Numba's "fastmath" is available. For the function get_pc_dists set fastmath=True. This results in a ~8% speed boost with very little change in the final output (correlation to R code output remains >= 0.995). This was benchmarked on the Medicago data used in the jupyter notebook using timeit, with 100 repeats with fastmath=False and Fastmath=True.
 ```get_pc_dists(result, fastmath=True)```
 
 The difference with fastmath=True and leaving it off can be seen [here](https://raw.githubusercontent.com/jguhlin/lostruct-py/master/benchmark_0.0.4-Get_PCs_Dists.svg). Note: Downloading the file will allow you to see more detailed information, as some javascript is contained in the SVG but disabled on GitHub.
@@ -140,4 +159,4 @@ Additional citations can be found in [CITATIONS](Citations.md) (UMAP, PHATE, Med
 
 # Miscellaneous Notes
 
-We are using the code formatter[BLACK](https://github.com/psf/black). Also, code coverage is actually 100% but numba JIT'd code is not properly counted. As long as all tests complete everything is working.
+We are using the code formatter [BLACK](https://github.com/psf/black). Also, code coverage is actually 100% but numba JIT'd code is not properly counted. As long as all tests complete everything is working.

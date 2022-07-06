@@ -1,3 +1,10 @@
+# Release 0.0.5
+* Updated documentation
+* Added smallest circle function (Thanks @...)
+* Test documentation switched to pytest
+* Added tests for pypy3
+* Better optional support for jax
+
 # Release 0.0.4
 * Split up get_pc_dists fn so numba can parallelize the majority of the work properly
 * Rename python package to lostruct
