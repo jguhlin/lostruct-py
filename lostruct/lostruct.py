@@ -3,7 +3,7 @@
 from enum import Enum
 from itertools import islice
 
-from enclosing_circle import *
+# from enclosing_circle import *
 
 import numpy as np
 import sparse
