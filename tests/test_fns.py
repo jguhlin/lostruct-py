@@ -5,6 +5,7 @@ import cyvcf2 as vcf
 import numpy as np
 import skbio.stats.ordination
 import sparse
+import numpy.random as rand
 
 import lostruct.lostruct as ls
 
@@ -14,6 +15,7 @@ import lostruct.lostruct as ls
 def take(n, iterable):
     "Return first n items of the iterable as a list"
     return list(itertools.islice(iterable, n))
+
 
 # ...
 
@@ -47,10 +49,29 @@ class TestVcf(unittest.TestCase):
         self.assertEqual(positions[0][0], 59864)
         self.assertTrue(isinstance(windows[0], sparse.COO))
 
-
 class TestCalculations(unittest.TestCase):
 
     error_tolerance = 0.00000001
+
+    def test_corners(self):
+        rng = rand.SFC64(seed=42)
+        gen = rand.Generator(rng)
+        rand_data = gen.random((100, 2))
+        outliers = ls.corners(rand_data, prop=0.05, fastmath=False)
+        self.assertIsNone(np.testing.assert_array_equal(np.sort(outliers[0]), [13, 23, 33]))
+        self.assertIsNone(np.testing.assert_array_equal(np.sort(outliers[1]), [27, 42, 48]))
+        self.assertIsNone(np.testing.assert_array_equal(np.sort(outliers[2]), [49, 56, 63]))
+
+        outliers = ls.corners(rand_data, prop=0.05, fastmath=True)
+        self.assertIsNone(np.testing.assert_array_equal(np.sort(outliers[0]), [13, 23, 33]))
+        self.assertIsNone(np.testing.assert_array_equal(np.sort(outliers[1]), [27, 42, 48]))
+        self.assertIsNone(np.testing.assert_array_equal(np.sort(outliers[2]), [49, 56, 63]))
+
+        # JAX showed no speedup, so it's not necessary
+        # outliers = ls.corners(rand_data, prop=0.05, jax=True)
+        # self.assertIsNone(np.testing.assert_array_equal(np.sort(outliers[0]), [13, 23, 33]))
+        # self.assertIsNone(np.testing.assert_array_equal(np.sort(outliers[1]), [27, 42, 48]))
+        # self.assertIsNone(np.testing.assert_array_equal(np.sort(outliers[2]), [49, 56, 63]))
 
     def test_cov_pca(self):
         windows, _ = ls.parse_vcf(vcf_file, "chr1", 99)
@@ -124,7 +145,7 @@ class TestCalculations(unittest.TestCase):
         for x in take(4, windows):
             result.append(ls.eigen_windows(x, 10, 1))
         result = np.vstack(result)
-        pc_dists = ls.get_pc_dists(result, fastmath=True)
+        pc_dists = ls.get_pc_dists(result, fastmath=True, jax=False)
 
         self.assertEqual(pc_dists[0][0], 0.0)
         self.assertAlmostEqual(
@@ -180,13 +201,13 @@ class TestCalculations(unittest.TestCase):
         self.assertTrue(np.corrcoef(mds.samples["PC1"], mds_coords)[0][1] >= 0.995)
 
         # Compare with fastmath
-        pc_dists = ls.get_pc_dists(result, fastmath=True)
+        pc_dists = ls.get_pc_dists(result, fastmath=True, jax=False)
         mds = skbio.stats.ordination.pcoa(pc_dists)
         # Comes out as 0.9971509982243156
         self.assertTrue(np.corrcoef(mds.samples["PC1"], mds_coords)[0][1] >= 0.995)
 
         # Compare with fastmath and fsvd
-        pc_dists = ls.get_pc_dists(result, fastmath=True)
+        pc_dists = ls.get_pc_dists(result, fastmath=True, jax=False)
         mds = skbio.stats.ordination.pcoa(
             pc_dists, method="fsvd", inplace=True, number_of_dimensions=10
         )

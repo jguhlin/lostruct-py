@@ -3,24 +3,30 @@
 from enum import Enum
 from itertools import islice
 
-# from enclosing_circle import *
-
 import numpy as np
 import sparse
 from cyvcf2 import VCF
-from numba import jit
-from multiprocessing import Pool
+from numba import jit, njit
+from .enclosing_circle import make_circle
 
 try:
     import jax.numpy as jnp
     import jax
     from jax.config import config
     from jax import pmap, vmap
+
     config.update("jax_enable_x64", True)
+    print("JAX Backend Enabled -- To disable set JAX_BACKEND=None before loading lostruct")
+    _HAS_JAX = True
 except ImportError:
-    _has_jax = False
-else:
-    _has_jax = True
+    _HAS_JAX = False
+
+try:
+    if JAX_BACKEND == None:
+        _HAS_JAX = False
+except NameError:
+    pass
+
 
 class Window(Enum):
     """Species whether to treat window sizes as per-SNP or per-BP... Currently not implemented"""
@@ -190,8 +196,10 @@ def l1_norm_jax(eigenvals):
     Applies l1 norm to a set of eigenvalues using JAX
     """
 
-    if not _has_jax:
-        raise ImportError("JAX is not installed. Please install JAX to use this function.")
+    if not _HAS_JAX:
+        raise ImportError(
+            "JAX is not installed. Please install JAX to use this function."
+        )
 
     z = jnp.vstack(eigenvals)
     # Because of the norm fn below, we can't use numba
@@ -208,8 +216,8 @@ def calc_dists_fastmath(vals, eigenvecs):
 
     This is separated out to take advantage of Numba optimizations.
     """
-    #comparison = np.zeros((n, n), dtype=np.float64)
-    #upper_triangle = zip(*np.triu_indices(n, k=1))
+    # comparison = np.zeros((n, n), dtype=np.float64)
+    # upper_triangle = zip(*np.triu_indices(n, k=1))
 
     comparison = np.zeros((vals.shape[0], vals.shape[0]), dtype=np.float64)
     upper_triangle = np.stack(np.triu_indices_from(comparison, k=1), axis=1)
@@ -235,14 +243,14 @@ def calc_dists(vals, eigenvecs):
 
     This is separated out to take advantage of Numba optimizations.
     """
-    #comparison = np.zeros((n, n), dtype=np.float64)
+    # comparison = np.zeros((n, n), dtype=np.float64)
     comparison = np.zeros((vals.shape[0], vals.shape[0]), dtype=np.float64)
-    #upper_triangle = zip(*np.triu_indices(n, k=1))
+    # upper_triangle = zip(*np.triu_indices(n, k=1))
     upper_triangle = np.stack(np.triu_indices_from(comparison, k=1), axis=1)
 
     vals = vals.real.astype(np.float64)
 
-    for i,j in upper_triangle:
+    for i, j in upper_triangle:
         comparison[i, j] = dist_sq_from_pcs(
             vals[i], vals[j], eigenvecs[i], eigenvecs[j]
         )
@@ -256,25 +264,28 @@ def calc_dists(vals, eigenvecs):
 # k = number of primary components
 # w = weight to apply
 # norm = normalization to apply (L1 or L2)
-def get_pc_dists(windows, fastmath=False, jax=False, w=1):
+# Set jax = False to disable JAX. jax has no function if _HAS_JAX is False.
+def get_pc_dists(windows, fastmath=False, w=1, jax=True):
     """
     Calculate distances between window matrices.
 
     Works on only the upper triangle of the matrix, but clones the data into the lower
     half as well.
     """
-    #n = len(windows)
+    # n = len(windows)
 
     # Remove negatives... Can't be placed within Numba code
     # Get square root
 
-    if fastmath and jax:
-        raise ValueError("Cannot use fastmath and jax at the same time. JAX outperforms fastmath but has limited cross-platform support.")
-    elif jax:
+    if fastmath and _HAS_JAX and jax:
+        raise ValueError(
+            "Cannot use fastmath and jax at the same time. JAX outperforms fastmath but has limited cross-platform support. Please disable fastmath."
+        )
+    elif _HAS_JAX and jax:
         vals = l1_norm_jax(jnp.asarray([x[2] for x in windows]))
         comparison = calc_dists_jax(vals, jnp.asarray([x[3] for x in windows]))
         return jnp.sqrt(jnp.where(comparison > 0, comparison, 0))
-    if fastmath:
+    elif fastmath:
         vals = np.asarray(l1_norm(np.asarray([x[2] for x in windows])))
         vals = vals.real.astype(np.float64)
         comparison = calc_dists_fastmath(vals, np.asarray([x[3] for x in windows]))
@@ -318,8 +329,10 @@ def calc_dists_jax(vals, eigenvecs):
     Calculate the distances of windows given a set of eigenvectors and normalized
     eigenvalues. Called from get_pc_dist(..., jax=True) function.
     """
-    if not _has_jax:
-        raise ImportError("JAX is not installed. Please install JAX to use this function.")
+    if not _HAS_JAX:
+        raise ImportError(
+            "JAX is not installed. Please install JAX to use this function."
+        )
 
     comparison = jnp.zeros((vals.shape[0], vals.shape[0]), dtype=jnp.float64)
 
@@ -341,26 +354,11 @@ def calc_dists_jax(vals, eigenvecs):
         ),
         axis=1,
     )
-
-    #    upper_triangle = jnp.stack((upper_triangle_vals, upper_triangle_eigenvecs), axis=1)
-
-    #    def do_calc(i, j):
-    #        return dist_sq_from_pcs_jax(vals[i], vals[j], eigenvecs[i], eigenvecs[j])
-
-    #    with Pool() as pool:
-    #        comparison_out = pool.starmap(lambda vs, evs: dist_sq_from_pcs_jax(vs[0], vs[1], evs[0], evs[1]), upper_triangle_vals, upper_triangle_eigenvecs)
-    #        comparison_out = pool.map(do_calc, upper_triangle)
-
-    #    for i, j in upper_triangle:
-    #        comparison = comparison.at[i, j].set(dist_sq_from_pcs_jax(
-    #            vals[i], vals[j], eigenvecs[i], eigenvecs[j]
-    #        ))
-
-    print("Got here!")
-
     pfn = jax.vmap(lambda vs, evs: dist_sq_from_pcs_jax(vs[0], vs[1], evs[0], evs[1]))
     comparison_out = pfn(upper_triangle_vals, upper_triangle_eigenvecs)
-    comparison = comparison.at[jnp.triu_indices_from(comparison, k=1)].set(comparison_out)
+    comparison = comparison.at[jnp.triu_indices_from(comparison, k=1)].set(
+        comparison_out
+    )
 
     # Make symmetric
     return comparison + comparison.T
@@ -371,8 +369,10 @@ def dist_sq_from_pcs_jax(v1, v2, xvec, yvec):
     """
     Given two matrices, calculates the distance between them.
     """
-    if not _has_jax:
-        raise ImportError("JAX is not installed. Please install JAX to use this function.")
+    if not _HAS_JAX:
+        raise ImportError(
+            "JAX is not installed. Please install JAX to use this function."
+        )
 
     Xt = jnp.dot(xvec, yvec.T)
     return (
@@ -381,20 +381,41 @@ def dist_sq_from_pcs_jax(v1, v2, xvec, yvec):
         - 2 * jnp.sum(v1 * jnp.sum(Xt * (v2 * Xt), axis=1))
     )
 
-import numpy as np
-from scipy.spatial import distance
 
-def corners(xy, prop, k=3):
+# Code from Alexis Simon, minor changes by Joseph
+@njit(parallel=True)
+def dpt(xy, uv):
+    return ((xy[:, 0] - uv[0]) ** 2 + (xy[:, 1] - uv[1]) ** 2) ** 0.5
+
+@njit(parallel=True)
+def closest(u, prop):
+    return np.where(u <= np.nanquantile(u, q=prop))[0]
+        
+@njit(fastmath=True, parallel=True)
+def dpt_fastmath(xy, uv):
+    return ((xy[:, 0] - uv[0]) ** 2 + (xy[:, 1] - uv[1]) ** 2) ** 0.5
+
+@njit(fastmath=True, parallel=True)
+def closest_fastmath(u, prop):
+    return np.where(u <= np.nanquantile(u, q=prop))[0]
+
+# JAX showed no speed-up and this is a one-off function (usually)
+def corners(xy, prop, fastmath=False):
     ctr_x, ctr_y, rad = make_circle(xy)
+
     ctr = np.array([ctr_x, ctr_y])[np.newaxis]
 
     # find 3 points that have the max distance from center
-    dst2ctr = distance.cdist(xy, ctr, 'euclidean').flatten()
+    #dst2ctr = distance.cdist(xy, ctr, "euclidean").flatten()
+    dst2ctr = np.linalg.norm(xy - ctr, axis=1)
     cidx = dst2ctr.argsort()[-3:]
 
-    dpt = lambda uv: ((xy[:,0] - uv[0])**2 + (xy[:,1] - uv[1])**2)**.5
-    closest = lambda u: np.where(u <= np.nanquantile(u, q=prop))[0]
-    dists = [dpt(xy[i,:]) for i in cidx]
-    out = np.stack([closest(z) for z in dists], axis=1)
-
+    # dpt = lambda uv: ((xy[:, 0] - uv[0]) ** 2 + (xy[:, 1] - uv[1]) ** 2) ** 0.5
+    # closest = lambda u: np.where(u <= np.nanquantile(u, q=prop))[0]
+    if fastmath:
+        dists = [dpt_fastmath(xy, xy[i, :]) for i in cidx]
+        out = np.stack([closest_fastmath(z, prop) for z in dists], axis=1)
+    else:
+        dists = [dpt(xy, xy[i, :]) for i in cidx]
+        out = np.stack([closest(z, prop) for z in dists], axis=1)
     return out

@@ -37,14 +37,8 @@ import numpy.random as rand
 # Initially: No boundary points known
 def make_circle(points):
     # Convert to float and randomize order
-    #shuffled = [(x,y) for (x, y) in points]
-    #random.shuffle(shuffled)
-
-    # Copy or it changes the original and messes things up!
-    shuffled = points.copy()
-    rng = rand.SFC64(seed=42)
-    gen = rand.Generator(rng)
-    gen.shuffle(shuffled)
+    shuffled = [(x,y) for (x, y) in points]
+    random.shuffle(shuffled)
 
     # Progressively add points to circle or recompute circle
     c = None
@@ -52,6 +46,7 @@ def make_circle(points):
         if c is None or not is_in_circle(c, p):
             c = _make_circle_one_point(shuffled[: i + 1], p)
     return c
+
 
 # One boundary point known
 def _make_circle_one_point(points, p):
@@ -64,15 +59,14 @@ def _make_circle_one_point(points, p):
                 c = _make_circle_two_points(points[: i + 1], p, q)
     return c
 
+
 # Two boundary points known
 def _make_circle_two_points(points, p, q):
     circ = make_diameter(p, q)
     left = None
     right = None
-    px = p[0]
-    py = p[1]
-    qx = q[0]
-    qy = q[1]
+    px, py = p
+    qx, qy = q
 
     # For each point not in the two-point circle
     for r in points:
@@ -111,8 +105,8 @@ def _make_circle_two_points(points, p, q):
 def make_diameter(a, b):
     cx = (a[0] + b[0]) / 2
     cy = (a[1] + b[1]) / 2
-    r0 = np.hypot(cx - a[0], cy - a[1])
-    r1 = np.hypot(cx - b[0], cy - b[1])
+    r0 = math.hypot(cx - a[0], cy - a[1])
+    r1 = math.hypot(cx - b[0], cy - b[1])
     return (cx, cy, max(r0, r1))
 
 @njit

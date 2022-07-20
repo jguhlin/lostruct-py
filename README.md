@@ -47,9 +47,9 @@ These may be installed with `conda` or `pip`, e.g. by running `pip install -r re
 # Changes
 See [CHANGES.MD](CHANGES.md) for the full list.
 
-## 0.0.5
-* JAX
+## 0.0.5 (pending)
 * Smallest circle
+* Better in-built JAX support
 
 ## 0.0.4
 * Package name changed to lostruct
@@ -63,7 +63,7 @@ Tests were derived from the [Medicago HapMap data](http://www.medicagohapmap.org
 To run tests simply do:
 ```
 pip install pytest
-pytest
+pytest --benchmark-disable tests/test_fns.py
 ```
 The tests furthermore require `unittest` and `scikit-bio` (and `pytest` to run them this way).
 
@@ -72,6 +72,8 @@ To run tests with benchmarks, install the following:
 ```
 pip install pytest-benchmark
 ```
+
+Then run ```pytest``
 
 ## TOX
 Tox allows you run tests with multiple versions of the python interpreter in venvs. It is best to use pyenv to install multiple versions python to run before submitting pull requests to be certain tests complete successfully across all versions.

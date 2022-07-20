@@ -28,10 +28,7 @@ setuptools.setup(
         "cyvcf2",
         "sparse",
     ],
-    extras_require = {
-        "jax": ["jax", "jaxlib"]
-
-    },
+    extras_require={"jax": ["jax", "jaxlib"]},
     python_requires=">=3.6",
     project_urls={
         "Bug Reports": "https://github.com/jguhlin/lostruct-py/issues",
