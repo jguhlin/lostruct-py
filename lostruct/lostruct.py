@@ -123,6 +123,7 @@ def parse_vcf(vcf_file, landmark, window_size, window_type=Window.SNP):
     return windows, positions
 
 
+@jit
 def cov_pca(snps, k, w=1):
     """
     Returns the covariance matrix, total variance, eigenvalues, eigenvectors for a given
@@ -167,7 +168,6 @@ def cov_pca(snps, k, w=1):
     vectors = vectors[:, :k].T.real.astype(np.float64)
 
     return covmat, total_variance, vals, vectors
-
 
 # I think this became a wrapper function for cov_pca...
 def eigen_windows(snps, k, w):
@@ -391,16 +391,9 @@ def dpt(xy, uv):
 def closest(u, prop):
     return np.where(u <= np.nanquantile(u, q=prop))[0]
         
-@njit(fastmath=True, parallel=True)
-def dpt_fastmath(xy, uv):
-    return ((xy[:, 0] - uv[0]) ** 2 + (xy[:, 1] - uv[1]) ** 2) ** 0.5
-
-@njit(fastmath=True, parallel=True)
-def closest_fastmath(u, prop):
-    return np.where(u <= np.nanquantile(u, q=prop))[0]
-
 # JAX showed no speed-up and this is a one-off function (usually)
-def corners(xy, prop, fastmath=False):
+@jit(forceobj=True, parallel=True)
+def corners(xy, prop):
     ctr_x, ctr_y, rad = make_circle(xy)
 
     ctr = np.array([ctr_x, ctr_y])[np.newaxis]
@@ -412,10 +405,6 @@ def corners(xy, prop, fastmath=False):
 
     # dpt = lambda uv: ((xy[:, 0] - uv[0]) ** 2 + (xy[:, 1] - uv[1]) ** 2) ** 0.5
     # closest = lambda u: np.where(u <= np.nanquantile(u, q=prop))[0]
-    if fastmath:
-        dists = [dpt_fastmath(xy, xy[i, :]) for i in cidx]
-        out = np.stack([closest_fastmath(z, prop) for z in dists], axis=1)
-    else:
-        dists = [dpt(xy, xy[i, :]) for i in cidx]
-        out = np.stack([closest(z, prop) for z in dists], axis=1)
+    dists = [dpt(xy, xy[i, :]) for i in cidx]
+    out = np.stack([closest(z, prop) for z in dists], axis=1)
     return out

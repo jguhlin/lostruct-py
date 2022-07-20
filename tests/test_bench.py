@@ -58,27 +58,12 @@ def test_corners(benchmark):
     rand_data = gen.random((100, 2))
     benchmark(ls.corners, rand_data, prop=0.05)
 
-@pytest.mark.benchmark(group="Corners", disable_gc=True, min_rounds=100, warmup=True)
-def test_corners_fastmath(benchmark):
-    rng = rand.SFC64(seed=42)
-    gen = rand.Generator(rng)
-    rand_data = gen.random((100, 2))
-    benchmark(ls.corners, rand_data, prop=0.05, fastmath=True)
-
-@pytest.mark.benchmark(group="Corners_102400", disable_gc=True, warmup=True)
-def test_corners_large(benchmark):
-    rng = rand.SFC64(seed=42)
-    gen = rand.Generator(rng)
-    rand_data = gen.random((100 * 1024, 2))
-    benchmark(ls.corners, rand_data, prop=0.05)
-
-@pytest.mark.benchmark(group="Corners_102400", disable_gc=True, warmup=True)
-def test_corners_large_fastmath(benchmark):
-    rng = rand.SFC64(seed=42)
-    gen = rand.Generator(rng)
-    rand_data = gen.random((100 * 1024, 2))
-    benchmark(ls.corners, rand_data, prop=0.05, fastmath=True)
-
+#@pytest.mark.benchmark(group="Corners", disable_gc=True, warmup=True)
+#def test_corners_large(benchmark):
+    #rng = rand.SFC64(seed=42)
+    #gen = rand.Generator(rng)
+    #rand_data = gen.random((100 * 1024, 2))
+    #benchmark(ls.corners, rand_data, prop=0.05)
 
 @pytest.mark.benchmark(group="PCoA", disable_gc=True, min_rounds=50, warmup=True)
 def test_pcoa_default(benchmark):

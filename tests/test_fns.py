@@ -57,15 +57,15 @@ class TestCalculations(unittest.TestCase):
         rng = rand.SFC64(seed=42)
         gen = rand.Generator(rng)
         rand_data = gen.random((100, 2))
-        outliers = ls.corners(rand_data, prop=0.05, fastmath=False)
+        outliers = ls.corners(rand_data, prop=0.05)
         self.assertIsNone(np.testing.assert_array_equal(np.sort(outliers[0]), [13, 23, 33]))
         self.assertIsNone(np.testing.assert_array_equal(np.sort(outliers[1]), [27, 42, 48]))
         self.assertIsNone(np.testing.assert_array_equal(np.sort(outliers[2]), [49, 56, 63]))
 
-        outliers = ls.corners(rand_data, prop=0.05, fastmath=True)
-        self.assertIsNone(np.testing.assert_array_equal(np.sort(outliers[0]), [13, 23, 33]))
-        self.assertIsNone(np.testing.assert_array_equal(np.sort(outliers[1]), [27, 42, 48]))
-        self.assertIsNone(np.testing.assert_array_equal(np.sort(outliers[2]), [49, 56, 63]))
+        #outliers = ls.corners(rand_data, prop=0.05, fastmath=True)
+        #self.assertIsNone(np.testing.assert_array_equal(np.sort(outliers[0]), [13, 23, 33]))
+        #self.assertIsNone(np.testing.assert_array_equal(np.sort(outliers[1]), [27, 42, 48]))
+        #self.assertIsNone(np.testing.assert_array_equal(np.sort(outliers[2]), [49, 56, 63]))
 
         # JAX showed no speedup, so it's not necessary
         # outliers = ls.corners(rand_data, prop=0.05, jax=True)
