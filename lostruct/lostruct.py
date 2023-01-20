@@ -393,7 +393,7 @@ def closest(u, prop):
         
 # JAX showed no speed-up and this is a one-off function (usually)
 @jit(forceobj=True, parallel=True)
-def corners(xy, prop):
+def corners(xy, prop, k=3):
     ctr_x, ctr_y, rad = make_circle(xy)
 
     ctr = np.array([ctr_x, ctr_y])[np.newaxis]
@@ -407,4 +407,18 @@ def corners(xy, prop):
     # closest = lambda u: np.where(u <= np.nanquantile(u, q=prop))[0]
     dists = [dpt(xy, xy[i, :]) for i in cidx]
     out = np.stack([closest(z, prop) for z in dists], axis=1)
+
+    use_these = np.array([])
+    if len(cidx) < k:
+        cdists = dpt(xy, np.array([ctr_x, ctr_y]))
+        all_idx = np.array(range(xy.shape[0]))
+        use_these = all_idx[~np.isin(all_idx, out)]
+    
+    while (len(cidx) < k) & (len(use_these) > 0):
+        new_idx = use_these[np.argmax(cdists[use_these])]
+        cidx = np.append(cidx, new_idx)
+        new_dists = dpt(xy, xy[new_idx])
+        out = np.concatenate([out, closest(new_dists, prop)[:,np.newaxis]], axis=1)
+        use_these = use_these[~np.isin(use_these, out[:,-1])]
+        
     return out
